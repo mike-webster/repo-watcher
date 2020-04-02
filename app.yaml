@@ -7,5 +7,6 @@ default: &default
 
 development:
   <<: *default
-  base_url: "https://repos.wyzdev.dog/api/v3"
+  base_url: "https://repos.wyzdev.com/api/v3"
   event_endpoint: "/repos/wyzant-web/%v/events"
+  name: "Mike"

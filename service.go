@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	models "github.com/mike-webster/repo-watcher/models"
 )
 
 // Log will print a message at the given level
@@ -14,7 +19,7 @@ func Log(message string, level string) {
 	fmt.Println(time.Now().Format("2006-01-02T15:04:05-0700"), " -- ", strings.ToUpper(level), " -- ", message)
 }
 
-// MakeRequest will use the given key to make the appropriate request.
+// MakeRequest will use the given url to make the appropriate request.
 // If a string is provided for the id parameter, it will be included
 // in the route.
 // The return value should be able to be parsed into the desired struct
@@ -67,4 +72,44 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// GetPreviousIDs returns the last group of IDs returned from the events call
+func GetPreviousIDs() (*[]string, error) {
+	path := "history.txt"
+	Log(fmt.Sprint("Looking in path: ", path, " for previous ids"), "debug")
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := strings.Split(string(data), ",")
+	return &ids, nil
+}
+
+// WriteNewIDs replaces the existing record with the current IDs
+func WriteNewIDs(events []models.Event) error {
+	path := "history.txt"
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+
+	ids := ""
+	for _, event := range events {
+		ids += fmt.Sprint(event.ID, ",")
+	}
+	if len(ids) > 0 {
+		ids = strings.TrimSuffix(ids, ",")
+	}
+
+	_, err = w.WriteString(ids)
+	if err != nil {
+		return err
+	}
+
+	return w.Flush()
 }

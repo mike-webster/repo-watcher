@@ -1,6 +1,7 @@
 module github.com/mike-webster/repo-watcher
 
 require (
-	gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 // indirect
+	github.com/gin-gonic/gin v1.6.2 // indirect
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
+	repos.wyzdev.com/wyzant-web/citizen v0.5.0
 )

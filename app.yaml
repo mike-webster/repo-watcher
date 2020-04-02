@@ -1,0 +1,11 @@
+default: &default
+  port: 3100
+  token: ENV['GH_TOKEN']
+  base_url: ""
+  org_name: ""
+  event_endpoint: ""
+
+development:
+  <<: *default
+  base_url: "https://repos.wyzdev.dog/api/v3"
+  event_endpoint: "/repos/wyzant-web/%v/events"

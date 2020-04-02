@@ -11,6 +11,7 @@ var curConfig *Config
 
 // Config contains all the application's configured values
 type Config struct {
+	UserName      string `yaml:"name"`
 	Port          int    `yaml:"port"`
 	APIToken      string `yaml:"token"`
 	BaseURL       string `yaml:"base_url"`
@@ -20,7 +21,7 @@ type Config struct {
 
 var (
 	// AppConfigFile is a relative file path
-	AppConfigFile = "app.yml"
+	AppConfigFile = "app.yaml"
 	// BasePath is an absolute path to the directory holding the configuration data.
 	BasePath string
 )
@@ -51,10 +52,12 @@ func loadAppConfig() *Config {
 	}
 	BasePath = filepath.Dir(BasePath)
 
-	var config Config
-	if err = yaml.Unmarshal(f, config); err != nil {
+	var configs map[string]Config
+	if err = yaml.Unmarshal(f, &configs); err != nil {
 		panic(err)
 	}
 
-	return &config
+	dev := configs["development"]
+
+	return &dev
 }

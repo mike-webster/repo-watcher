@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // Repository contains information about a GitHub repository
 type Repository struct {
@@ -25,4 +28,9 @@ type Event struct {
 	Repo      Repository             `json:"repo"`
 	Payload   map[string]interface{} `json:"payload"`
 	CreatedAt time.Time              `json:"created_at"`
+}
+
+// TrackingStub returns a json tag to use to track the events
+func (e *Event) TrackingStub() string {
+	return fmt.Sprintf("{'id':'%v'}", e.ID)
 }

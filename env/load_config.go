@@ -12,7 +12,8 @@ var curConfig *Config
 
 // Config contains all the application's configured values
 type Config struct {
-	UserName        string `yaml:"name"`
+	UsersName       string `yaml:"name"`
+	Username        string `yaml:"username"`
 	Port            int    `yaml:"port"`
 	APIToken        string `yaml:"token"`
 	BaseURLTemplate string `yaml:"base_url_template"`

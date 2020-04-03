@@ -84,6 +84,9 @@ func runCheck() {
 		// TODO: should we filter out the current user's notifications?
 		for _, event := range newEvents {
 			logEvent(event.Raw())
+			if event.TriggeredBy() == cfg.Username {
+				continue
+			}
 			announceEvent(event)
 			time.Sleep(5 * time.Second)
 		}
@@ -94,7 +97,7 @@ func announceEvent(e models.RepositoryEvent) {
 	cfg := env.GetConfig()
 	message := e.Say()
 	if strings.Index(message, "#{user}") > 0 {
-		message = strings.Replace(message, "#{user}", cfg.UserName, 1)
+		message = strings.Replace(message, "#{user}", cfg.UsersName, 1)
 	}
 	if strings.Index(message, "#{actor}") > 0 {
 		realName, err := getNameFromUsername(e.TriggeredBy())

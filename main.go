@@ -78,20 +78,12 @@ func runCheck() {
 	}
 
 	if len(newEvents) > 0 {
-		cmd := exec.Command("say", fmt.Sprintf("Hey, %v ! We just found %v new events in your %v repo.", cfg.UserName, len(newEvents), "Academy"))
-		cmd.Run()
-	}
-
-	if len(newEvents) > 0 {
-		// TODO: maybe make a user call to find the user's actual name?
 		// TODO: should we filter out the current user's notifications?
 		for _, event := range newEvents {
 			logEvent(event.Raw())
 			announceEvent(event)
 			time.Sleep(5 * time.Second)
 		}
-	} else {
-		// TODO: maybe 'say' some sort of summary?
 	}
 }
 

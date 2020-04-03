@@ -101,7 +101,13 @@ func announceEvent(e models.RepositoryEvent) {
 		message = strings.Replace(message, "{user}", cfg.UserName, 1)
 	}
 	if strings.Index(message, "{actor}") > 0 {
-		message = strings.Replace(message, "{actor}", e.TriggeredBy(), 1)
+		realName, err := getNameFromUsername(e.TriggeredBy())
+		if err != nil {
+			Log(err.Error(), "error")
+			return
+		}
+
+		message = strings.Replace(message, "{actor}", realName, 1)
 	}
 	if strings.Index(message, "{branch}") > 0 {
 		message = strings.Replace(message, "{branch}", e.BranchName(), 1)

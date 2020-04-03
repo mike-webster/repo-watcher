@@ -97,23 +97,23 @@ func runCheck() {
 func announceEvent(e models.RepositoryEvent) {
 	cfg := env.GetConfig()
 	message := e.Say()
-	if strings.Index(message, "{user}") > 0 {
-		message = strings.Replace(message, "{user}", cfg.UserName, 1)
+	if strings.Index(message, "#{user}") > 0 {
+		message = strings.Replace(message, "#{user}", cfg.UserName, 1)
 	}
-	if strings.Index(message, "{actor}") > 0 {
+	if strings.Index(message, "#{actor}") > 0 {
 		realName, err := getNameFromUsername(e.TriggeredBy())
 		if err != nil {
-			Log(err.Error(), "error")
+			Log(err.Error(), "#error")
 			return
 		}
 
-		message = strings.Replace(message, "{actor}", realName, 1)
+		message = strings.Replace(message, "#{actor}", realName, 1)
 	}
-	if strings.Index(message, "{branch}") > 0 {
-		message = strings.Replace(message, "{branch}", e.BranchName(), 1)
+	if strings.Index(message, "#{branch}") > 0 {
+		message = strings.Replace(message, "#{branch}", e.BranchName(), 1)
 	}
-	if strings.Index(message, "{comment}") > 0 {
-		message = strings.Replace(message, "{comment}", e.Comment(), 1)
+	if strings.Index(message, "#{comment}") > 0 {
+		message = strings.Replace(message, "#{comment}", e.Comment(), 1)
 	}
 
 	say(message)

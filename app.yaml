@@ -4,9 +4,11 @@ default: &default
   base_url: ""
   org_name: ""
   event_endpoint: ""
+  user_endpoint: ""
 
 development:
   <<: *default
   base_url: "https://repos.wyzdev.com/api/v3"
   event_endpoint: "/repos/wyzant-web/%v/events"
+  user_endpoint: "/users/%v"
   name: "Mike"

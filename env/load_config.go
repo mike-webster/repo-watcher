@@ -17,6 +17,7 @@ type Config struct {
 	BaseURL       string `yaml:"base_url"`
 	OrgName       string `yaml:"org_name"`
 	EventEndpoint string `yaml:"event_endpoint"`
+	UserEndpoint  string `yaml:"user_endpoint"`
 }
 
 var (

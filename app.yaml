@@ -1,11 +1,14 @@
 default: &default
   port: 3100
   token: ENV['GH_TOKEN']
-  base_url: ""
+  base_url_template: ""
   org_name: ""
+  repo_host: ""
   event_endpoint: ""
   user_endpoint: ""
+  name: ""
   refresh_seconds: 300
+  repo_to_watch: ""
 
 development:
   <<: *default

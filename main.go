@@ -36,7 +36,8 @@ func runCheck() {
 	Log(fmt.Sprint("previous ids: ", ids), "info")
 	Log("...finding most recents events...", "debug")
 
-	eventsBody, err := MakeRequest(fmt.Sprint(cfg.BaseURL, cfg.EventEndpoint), "academy", cfg.APIToken)
+	url := fmt.Sprint(cfg.BaseURL(), fmt.Sprintf(cfg.EventEndpoint, cfg.OrgName, cfg.RepoToWatch))
+	eventsBody, err := MakeRequest(url, "", cfg.APIToken)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +115,7 @@ func announceEvent(e models.RepositoryEvent) {
 
 func getNameFromUsername(username string) (string, error) {
 	cfg := env.GetConfig()
-	userBody, err := MakeRequest(fmt.Sprint(cfg.BaseURL, cfg.UserEndpoint), username, cfg.APIToken)
+	userBody, err := MakeRequest(fmt.Sprint(cfg.BaseURL(), cfg.UserEndpoint), username, cfg.APIToken)
 	if err != nil {
 		return "", err
 	}

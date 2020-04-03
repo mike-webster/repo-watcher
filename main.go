@@ -18,7 +18,9 @@ func main() {
 
 	for {
 		runCheck()
-		time.Sleep(time.Duration(cfg.RefreshTimer*1000000000) * time.Second)
+		sleep := time.Duration(cfg.RefreshTimer) * time.Second
+		Log(fmt.Sprint("...sleep duration: ", sleep, " seconds..."), "info")
+		time.Sleep(sleep)
 	}
 
 	Log("...stopping monitoring...", "info")

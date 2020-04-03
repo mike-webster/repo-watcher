@@ -88,7 +88,7 @@ func GetPreviousIDs() (*[]string, error) {
 }
 
 // WriteNewIDs replaces the existing record with the current IDs
-func WriteNewIDs(events []models.Event) error {
+func WriteNewIDs(events []models.RepositoryEvent) error {
 	path := "history.txt"
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -100,7 +100,7 @@ func WriteNewIDs(events []models.Event) error {
 
 	ids := ""
 	for _, event := range events {
-		ids += fmt.Sprint(event.ID, ",")
+		ids += fmt.Sprint(event.Raw().ID, ",")
 	}
 	if len(ids) > 0 {
 		ids = strings.TrimSuffix(ids, ",")

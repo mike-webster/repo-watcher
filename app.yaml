@@ -1,6 +1,6 @@
 default: &default
   port: 3100
-  token: ENV['GH_TOKEN']
+  token: ""
   base_url_template: ""
   org_name: ""
   repo_host: ""
@@ -10,11 +10,19 @@ default: &default
   refresh_seconds: 300
   repo_to_watch: ""
   log_level: "info"
+  username: ""
 
 development:
   <<: *default
-  base_url: "https://repos.wyzdev.com/api/v3"
-  event_endpoint: "/repos/wyzant-web/%v/events"
-  user_endpoint: "/users/%v"
-  name: "Mike"
-  refresh_seconds: 30  log_level: "debug"
+  token: ""
+  base_url_template: ""
+  org_name: ""
+  repo_host: ""
+  event_endpoint: ""
+  user_endpoint: ""
+  name: ""
+  username: ""
+  refresh_seconds: 30
+  repo_to_watch: ""
+  log_level: "info"
+  

@@ -18,6 +18,7 @@ type Config struct {
 	OrgName       string `yaml:"org_name"`
 	EventEndpoint string `yaml:"event_endpoint"`
 	UserEndpoint  string `yaml:"user_endpoint"`
+	RefreshTimer  int    `yaml:"refresh_seconds"`
 }
 
 var (

@@ -13,11 +13,12 @@ import (
 )
 
 func main() {
+	cfg := env.GetConfig()
 	Log("...starting to monitor...", "info")
 
 	for {
 		runCheck()
-		time.Sleep(30 * time.Second)
+		time.Sleep(time.Duration(cfg.RefreshTimer*1000000000) * time.Second)
 	}
 
 	Log("...stopping monitoring...", "info")

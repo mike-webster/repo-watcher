@@ -5,6 +5,7 @@ default: &default
   org_name: ""
   event_endpoint: ""
   user_endpoint: ""
+  refresh_seconds: 300
 
 development:
   <<: *default
@@ -12,3 +13,4 @@ development:
   event_endpoint: "/repos/wyzant-web/%v/events"
   user_endpoint: "/users/%v"
   name: "Mike"
+  refresh_seconds: 30

@@ -11,11 +11,16 @@ import (
 	"strings"
 	"time"
 
+	env "github.com/mike-webster/repo-watcher/env"
 	models "github.com/mike-webster/repo-watcher/models"
 )
 
 // Log will print a message at the given level
 func Log(message string, level string) {
+	cfg := env.GetConfig()
+	if cfg.LogLevel == "info" && level == "debug" {
+		return
+	}
 	fmt.Println(time.Now().Format("2006-01-02T15:04:05-0700"), " -- ", strings.ToUpper(level), " -- ", message)
 }
 

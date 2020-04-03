@@ -22,6 +22,7 @@ type Config struct {
 	RefreshTimer    int    `yaml:"refresh_seconds"`
 	RepoHost        string `yaml:"repo_host"`
 	RepoToWatch     string `yaml:"repo_to_watch"`
+	LogLevel        string `yaml:"log_level"`
 }
 
 func (c *Config) BaseURL() string {

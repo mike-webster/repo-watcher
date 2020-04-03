@@ -9,6 +9,7 @@ default: &default
   name: ""
   refresh_seconds: 300
   repo_to_watch: ""
+  log_level: "info"
 
 development:
   <<: *default
@@ -16,4 +17,4 @@ development:
   event_endpoint: "/repos/wyzant-web/%v/events"
   user_endpoint: "/users/%v"
   name: "Mike"
-  refresh_seconds: 30
+  refresh_seconds: 30  log_level: "debug"

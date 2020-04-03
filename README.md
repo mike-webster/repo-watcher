@@ -6,6 +6,9 @@ A Ruby application that provides desktop notifications from a GHe repo
 - Disclaimer: I have only tested this with a branch "owned" by an organization, so there might be some bugs around repos not set up in this way.
 
 ## How to use:
+#### Clone the repo
+`git clone https://github.com/mike-webster/repo-watcher.git`
+
 #### App Config
 Fill out the following values appropriately
 - token
@@ -20,6 +23,15 @@ Fill out the following values appropriately
     - How often you want the application to check for activity
 - repo_to_watch
     - The repo you want to monitor
+- username
+    - Your github username, this is used to silence your own events
+
+#### Turn up the volume
+As of now, I'm relying on `say` for this to actually notify the user, so you'll
+need to be able to hear it.
+
+#### Start the server
+In a terminal session, run `make start`
 
 ## How to get a Personal Access Token?
 - Log in to your repository

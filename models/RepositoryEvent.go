@@ -42,6 +42,8 @@ func CreateRepositoryEvent(e Event) (RepositoryEvent, error) {
 		return &PullRequestReviewCommentEvent{raw: e}, nil
 	case "PushEvent":
 		return &PushEvent{raw: e}, nil
+	case "PullRequestEvent":
+		return &PullRequestEvent{raw: e}, nil
 	default:
 		return nil, errors.New(fmt.Sprint("unknown event type: ", e.Type))
 	}

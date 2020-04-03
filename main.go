@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	env "github.com/mike-webster/repo-watcher/env"
@@ -15,7 +17,7 @@ func main() {
 
 	for {
 		runCheck()
-		time.Sleep(5 * time.Minute)
+		time.Sleep(30 * time.Second)
 	}
 
 	Log("...stopping monitoring...", "info")
@@ -46,17 +48,26 @@ func runCheck() {
 
 	Log(fmt.Sprint("found ", len(events), " events"), "info")
 
-	err = WriteNewIDs(events)
+	var repoEvents []models.RepositoryEvent
+	for _, event := range events {
+		repoEvent, err := models.CreateRepositoryEvent(event)
+		if err != nil {
+			Log(err.Error(), "error")
+		} else {
+			repoEvents = append(repoEvents, repoEvent)
+		}
+	}
+
+	err = WriteNewIDs(repoEvents)
 	if err != nil {
 		panic(err)
 	}
 
-	newEvents := []models.Event{}
-	for _, e := range events {
+	newEvents := []models.RepositoryEvent{}
+	for _, e := range repoEvents {
 		isOld := false
 		for _, o := range *ids {
-			if e.ID == o {
-				Log(fmt.Sprintf("%v == %v", e.ID, o), "debug")
+			if e.Raw().ID == o {
 				isOld = true
 			}
 		}
@@ -66,7 +77,73 @@ func runCheck() {
 	}
 
 	if len(newEvents) > 0 {
-		cmd := exec.Command("say", fmt.Sprintf("Hey, %v ! We just found %v new notifications in your %v repo.", cfg.UserName, len(newEvents), "Academy"))
+		cmd := exec.Command("say", fmt.Sprintf("Hey, %v ! We just found %v new events in your %v repo.", cfg.UserName, len(newEvents), "Academy"))
 		cmd.Run()
 	}
+
+	if len(newEvents) > 0 {
+		// TODO: maybe make a user call to find the user's actual name?
+		// TODO: should we filter out the current user's notifications?
+		for _, event := range newEvents {
+			logEvent(event.Raw())
+			announceEvent(event)
+			time.Sleep(5 * time.Second)
+		}
+	} else {
+		// TODO: maybe 'say' some sort of summary?
+	}
+}
+
+func announceEvent(e models.RepositoryEvent) {
+	cfg := env.GetConfig()
+	message := e.Say()
+	if strings.Index(message, "{user}") > 0 {
+		message = strings.Replace(message, "{user}", cfg.UserName, 1)
+	}
+	if strings.Index(message, "{actor}") > 0 {
+		message = strings.Replace(message, "{actor}", e.TriggeredBy(), 1)
+	}
+	if strings.Index(message, "{branch}") > 0 {
+		message = strings.Replace(message, "{branch}", e.BranchName(), 1)
+	}
+	if strings.Index(message, "{comment}") > 0 {
+		message = strings.Replace(message, "{comment}", e.Comment(), 1)
+	}
+
+	say(message)
+}
+
+func getNameFromUsername(username string) (string, error) {
+	cfg := env.GetConfig()
+	userBody, err := MakeRequest(fmt.Sprint(cfg.BaseURL, cfg.UserEndpoint), username, cfg.APIToken)
+	if err != nil {
+		return "", err
+	}
+	var payload map[string]interface{}
+	err = json.Unmarshal(*userBody, &payload)
+	if err != nil {
+		return "", err
+	}
+
+	name := strings.Split(payload["name"].(string), ", ")
+	return fmt.Sprint(name[1], " ", name[0]), nil
+}
+
+func logEvent(e models.Event) {
+
+	Log(fmt.Sprint("User ", e.Actor.Username), "debug")
+	Log(fmt.Sprint("Event type: ", camelRegexp(e.Type)), "info")
+	Log(fmt.Sprint("Payload: ", e.Payload), "info")
+}
+
+func camelRegexp(str string) string {
+	re := regexp.MustCompile(`([A-Z]+)`)
+	str = re.ReplaceAllString(str, ` $1`)
+	str = strings.Trim(str, " ")
+	return str
+}
+
+func say(message string) {
+	cmd := exec.Command("say", message)
+	cmd.Run()
 }

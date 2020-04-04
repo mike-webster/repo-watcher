@@ -109,7 +109,27 @@ func announceEvent(e models.RepositoryEvent) {
 		message = strings.Replace(message, "#{comment}", e.Comment(), 1)
 	}
 
-	say(message)
+	sendMessageToSlack(message)
+}
+
+func sendMessageToSlack(message string) error {
+	cfg := env.GetConfig()
+	body := fmt.Sprintf("{\"text\":\"%v\"}", message)
+	req, err := http.NewRequest("POST", cfg.SlackWebhook, strings.NewReader(body))
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.New(fmt.Sprint("non-200 response: ", resp.StatusCode))
+	}
+	return nil
 }
 
 func getNameFromUsername(username string) (string, error) {

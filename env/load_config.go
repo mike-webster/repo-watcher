@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	yaml "gopkg.in/yaml.v1"
@@ -68,6 +69,11 @@ func loadAppConfig() *Config {
 	}
 
 	dev := configs["development"]
+
+	envToken := os.Getenv("API_TOKEN")
+	if len(envToken) > 0 {
+		dev.APIToken = envToken
+	}
 
 	return &dev
 }

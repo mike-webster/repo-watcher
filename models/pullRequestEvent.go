@@ -2,7 +2,9 @@ package models
 
 import "fmt"
 
-// PullRequestEvent represents a user acting on a pull request
+// PullRequestEvent is triggered when a pull request is assigned, unassigned,
+// labeled, unlabeled, opened, edited, closed, reopened, synchronize,
+// ready_for_review, locked, unlocked or when a pull request review is requested or removed.
 type PullRequestEvent struct {
 	raw Event
 }
@@ -57,5 +59,9 @@ func (pre *PullRequestEvent) Say() string {
 	action := pre.Raw().Payload["action"].(string)
 	pr := pre.Raw().Payload["pull_request"].(map[string]interface{})
 	title := pr["title"]
-	return fmt.Sprint("Hey, #{user}! #{actor} just ", action, " a pull request with the title: ", title)
+	message := fmt.Sprint("#{actor} just ", action, " a pull request with the title: ", title)
+	if action == "opened" {
+		message += "\nBody:\n" + pr["body"].(string)
+	}
+	return message
 }

@@ -2,7 +2,8 @@ package models
 
 import "fmt"
 
-// PullRequestReviewCommentEvent represents an actor creating something
+// PullRequestReviewCommentEvent is triggered when a comment on a pull
+// request's unified diff is created, edited, or deleted
 type PullRequestReviewCommentEvent struct {
 	raw Event
 }
@@ -55,5 +56,5 @@ func (prrce *PullRequestReviewCommentEvent) Say() string {
 	file := comment["path"].(string)
 	pr := prrce.Raw().Payload["pull_request"].(map[string]interface{})
 	prTitle := pr["title"]
-	return fmt.Sprint("Hey, #{user}! #{actor} just commented on a pull request with the title: ", prTitle, ", The comment was in the file: ", file, ", Here's the comment: #{comment}")
+	return fmt.Sprint("#{actor} just commented on a pull request with the title: ", prTitle, ",\nThe comment was in the file: ", file, ",\nHere's the comment: #{comment}")
 }

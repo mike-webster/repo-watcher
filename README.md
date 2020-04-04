@@ -25,10 +25,15 @@ Fill out the following values appropriately
     - The repo you want to monitor
 - username
     - Your github username, this is used to silence your own events
+- slack_webhook
+    - The webhook you set up for your Slack app
 
 #### Turn up the volume
 As of now, I'm relying on `say` for this to actually notify the user, so you'll
 need to be able to hear it.
+
+#### Set up the Slack App
+- Create a slack app and set up an incoming webhook so you can post messages to a slack channel
 
 #### Start the server
 In a terminal session, run `make start`

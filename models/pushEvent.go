@@ -2,7 +2,8 @@ package models
 
 import "fmt"
 
-// PushEvent represents a user pushing code to a repository
+// PushEvent is triggered on a push to a repository branch. Branch pushes
+// and repository tag pushes also trigger webhook push events.
 type PushEvent struct {
 	raw Event
 }
@@ -50,5 +51,5 @@ func (pe *PushEvent) Raw() Event {
 
 // Say returns the templated string to pass to the say command for this object
 func (pe *PushEvent) Say() string {
-	return fmt.Sprint("Hey, #{user}! #{actor} just pushed some code to branch #{branch}")
+	return fmt.Sprint("#{actor} just pushed some code to branch #{branch}")
 }

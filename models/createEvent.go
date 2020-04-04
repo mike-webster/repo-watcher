@@ -1,6 +1,6 @@
 package models
 
-// CreateEvent represents an actor creating something
+// CreateEvent represents an actor creating a branch or tag
 type CreateEvent struct {
 	raw Event
 }
@@ -47,5 +47,5 @@ func (ce *CreateEvent) Raw() Event {
 
 // Say returns the templated string to pass to the say command for this object
 func (ce *CreateEvent) Say() string {
-	return "Hey, #{user}! #{actor} just created something. Branch name: #{branch}"
+	return "#{actor} just created a branch: #{branch}"
 }

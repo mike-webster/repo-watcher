@@ -2,7 +2,9 @@ package models
 
 import "fmt"
 
-// IssuesEvent represents a user acting on an issue
+// IssuesEvent is triggered by an issue being opened, edited, deleted, pinned,
+// unpinned, closed, reopened, assigned, unassigned, labeled, unlabeled,
+// locked, unlocked, transferred, milestoned, or demilestoned.
 type IssuesEvent struct {
 	raw Event
 }
@@ -55,5 +57,5 @@ func (ie *IssuesEvent) Say() string {
 	action := ie.Raw().Payload["action"].(string)
 	issue := ie.Raw().Payload["issue"].(map[string]interface{})
 	title := issue["title"]
-	return fmt.Sprint("Hey, #{user}! #{actor} just ", action, " an issue with the title: ", title)
+	return fmt.Sprint("#{actor} just ", action, " an issue with the title: ", title)
 }

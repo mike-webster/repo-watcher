@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// https://developer.github.com/v3/activity/events/types
+
 // RepositoryEvent is a representation of an Event object from the
 // GitHub notifications API.
 type RepositoryEvent interface {

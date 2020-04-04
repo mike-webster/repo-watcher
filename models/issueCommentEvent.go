@@ -2,7 +2,7 @@ package models
 
 import "fmt"
 
-// IssueCommentEvent represents a user commenting on an issue
+// IssueCommentEvent is triggered when an issue comment is created, edited, or deleted.
 type IssueCommentEvent struct {
 	raw Event
 }
@@ -53,5 +53,5 @@ func (ice *IssueCommentEvent) Raw() Event {
 func (ice *IssueCommentEvent) Say() string {
 	issue := ice.Raw().Payload["issue"].(map[string]interface{})
 	title := issue["title"]
-	return fmt.Sprint("Hey, #{user}! #{actor} just commented on an issue with the title: ", title, ", Here's the comment: #{comment}")
+	return fmt.Sprint("#{actor} just commented on an issue with the title: ", title, ", Here's the comment: #{comment}")
 }

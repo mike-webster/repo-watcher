@@ -12,8 +12,6 @@ var curConfig *Config
 
 // Config contains all the application's configured values
 type Config struct {
-	UsersName       string `yaml:"name"`
-	Username        string `yaml:"username"`
 	Port            int    `yaml:"port"`
 	APIToken        string `yaml:"token"`
 	BaseURLTemplate string `yaml:"base_url_template"`
@@ -24,6 +22,7 @@ type Config struct {
 	RepoHost        string `yaml:"repo_host"`
 	RepoToWatch     string `yaml:"repo_to_watch"`
 	LogLevel        string `yaml:"log_level"`
+	SlackWebhook    string `yaml:"slack_webhook"`
 }
 
 func (c *Config) BaseURL() string {

@@ -9,6 +9,7 @@ default: &default
   refresh_seconds: 300
   repo_to_watch: ""
   log_level: "info"
+  slack_webhook: ""
 
 development:
   <<: *default

@@ -52,10 +52,11 @@ func (ge *GollumEvent) Raw() Event {
 
 // Say returns the templated string to pass to the say command for this object
 func (ge *GollumEvent) Say() string {
-	pagesBody := ge.Raw().Payload["pages"].([]map[string]interface{})
+	pagesBody := ge.Raw().Payload["pages"].([]interface{})
 	pages := []string{}
 	for _, page := range pagesBody {
-		pages = append(pages, page["html_url"].(string))
+		iPage := page.(map[string]interface{})
+		pages = append(pages, iPage["html_url"].(string))
 	}
 
 	return fmt.Sprint("#{actor} just edited some Wiki content:\n", strings.Join(pages, "\n"))

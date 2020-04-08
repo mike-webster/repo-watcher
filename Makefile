@@ -1,3 +1,3 @@
 .PHONY: start
 start:
-	@go run main.go service.go
+	@go run main.go service.go server.go

@@ -34,12 +34,7 @@ func main() {
 		}
 	} else if cfg.RunType == "api" {
 		Log("...Run type: api...", "info")
-		s := &server{}
-		http.Handle("/", s)
-		err := http.ListenAndServe(fmt.Sprintf(":%v", cfg.Port), nil)
-		if err != nil {
-			Log(err.Error(), "error")
-		}
+		startServer(cfg.Port)
 	}
 
 	Log("...stopping monitoring...", "info")

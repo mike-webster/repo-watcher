@@ -19,6 +19,9 @@ func main() {
 	Log("...starting to monitor...", "info")
 
 	if cfg.RunType == "cron" {
+		// In order for this run type to work, I need to solve the persistence issue
+		// ... I'm using a file, after a cron task finishes, it's cleaned up
+		// ... Meaning every run, it would think all 30 events are new.
 		Log("...Run type: cron...", "info")
 		runCheck()
 	} else if cfg.RunType == "solo" {

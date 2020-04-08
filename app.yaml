@@ -23,4 +23,5 @@ development:
   refresh_seconds: 30
   repo_to_watch: ""
   log_level: "info"
+  run_type: "solo"
   

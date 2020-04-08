@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  app:
+    container_name: repo-watcher
+    command: >
+      bash -c "make start"
+    build:
+      context: .
+    ports:
+    - 3100:3100

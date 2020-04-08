@@ -15,16 +15,8 @@ import (
 )
 
 func main() {
-	cfg := env.GetConfig()
 	Log("...starting to monitor...", "info")
-
-	for {
-		runCheck()
-		sleep := time.Duration(cfg.RefreshTimer) * time.Second
-		Log(fmt.Sprint("...sleep duration: ", sleep, " seconds..."), "info")
-		time.Sleep(sleep)
-	}
-
+	runCheck()
 	Log("...stopping monitoring...", "info")
 }
 

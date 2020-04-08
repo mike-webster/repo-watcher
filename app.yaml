@@ -10,6 +10,7 @@ default: &default
   repo_to_watch: ""
   log_level: "info"
   slack_webhook: ""
+  run_type: "cron"
 
 development:
   <<: *default

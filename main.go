@@ -15,8 +15,22 @@ import (
 )
 
 func main() {
+	cfg := env.GetConfig()
 	Log("...starting to monitor...", "info")
-	runCheck()
+
+	if cfg.RunType == "cron" {
+		Log("...Run type: cron...", "info")
+		runCheck()
+	} else if cfg.RunType == "solo" {
+		Log("...Run type: solo...", "info")
+		sleep := time.Duration(cfg.RefreshTimer) * time.Second
+		for {
+			runCheck()
+			Log(fmt.Sprint("...sleep duration: ", sleep, " seconds..."), "info")
+			time.Sleep(sleep)
+		}
+	}
+
 	Log("...stopping monitoring...", "info")
 }
 

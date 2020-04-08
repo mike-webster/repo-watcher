@@ -24,6 +24,7 @@ type Config struct {
 	RepoToWatch     string `yaml:"repo_to_watch"`
 	LogLevel        string `yaml:"log_level"`
 	SlackWebhook    string `yaml:"slack_webhook"`
+	RunType         string `yaml:"run_type"`
 }
 
 func (c *Config) BaseURL() string {

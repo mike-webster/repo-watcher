@@ -85,6 +85,12 @@ func GetPreviousIDs() (*[]string, error) {
 	Log(fmt.Sprint("Looking in path: ", path, " for previous ids"), "debug")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
+		if strings.Contains(err.Error(), "no such file or directory") {
+			file, _ := os.Create("history.txt")
+			file.Close()
+			return &[]string{}, nil
+		}
+
 		return nil, err
 	}
 

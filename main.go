@@ -147,7 +147,13 @@ func getNameFromUsername(username string) (string, error) {
 	}
 
 	name := strings.Split(payload["name"].(string), ", ")
-	return fmt.Sprint(name[1], " ", name[0]), nil
+	if len(name) == 2 {
+		return fmt.Sprint(name[1], " ", name[0]), nil
+	}
+
+	Log(fmt.Sprint("issue finding name: ", username, " -- ", name), "error")
+
+	return username, nil
 }
 
 func logEvent(e models.Event) {

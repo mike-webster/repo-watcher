@@ -34,7 +34,11 @@ func main() {
 		}
 	} else if cfg.RunType == "api" {
 		Log("...Run type: api...", "info")
-		startServer(cfg.Port)
+		router := SetupServer(fmt.Sprint(cfg.Port))
+		err := router.Run()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	Log("...stopping monitoring...", "info")

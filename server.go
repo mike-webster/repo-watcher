@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	env "github.com/mike-webster/repo-watcher/env"
 	webhookmodels "github.com/mike-webster/repo-watcher/webhookmodels"
 )
 
@@ -40,6 +38,15 @@ func (s *Server) Run() error {
 	return s.Engine.Run(fmt.Sprintf(":%v", s.Port))
 }
 
+type ghRequestHeader struct {
+	Event  string `header:"X-GitHub-Event" binding:"required"`
+	Secret string `header:"X-Hub-Signature" binding:"required"`
+}
+
+func (ghrh *ghRequestHeader) ToString() string {
+	return fmt.Sprint("Event: ", ghrh.Event, " -- Secret: ", ghrh.Secret)
+}
+
 func SetupServer(port string) *Server {
 	router := gin.Default()
 	router.GET("/", handlerHealtcheck)
@@ -57,15 +64,6 @@ func SetupServer(port string) *Server {
 
 func handlerHealtcheck(ctx *gin.Context) {
 	ctx.JSON(CodeOK, fmt.Sprintf("{\"%v\":\"%v\"}", "message", "ok"))
-}
-
-type ghRequestHeader struct {
-	Event  string `header:"X-GitHub-Event" binding:"required"`
-	Secret string `header:"X-Hub-Signature" binding:"required"`
-}
-
-func (ghrh *ghRequestHeader) ToString() string {
-	return fmt.Sprint("Event: ", ghrh.Event, " -- Secret: ", ghrh.Secret)
 }
 
 func handlerGitHub(ctx *gin.Context) {
@@ -220,26 +218,4 @@ func parseEventMessage(event string, ctx *gin.Context) (string, int, error) {
 	}
 
 	return "", CodeInvalid, err
-}
-
-func getNameFromUsername(username string) (string, error) {
-	cfg := env.GetConfig()
-	userBody, err := MakeRequest(fmt.Sprint(cfg.BaseURL(), cfg.UserEndpoint), username, cfg.APIToken)
-	if err != nil {
-		return "", err
-	}
-	var payload map[string]interface{}
-	err = json.Unmarshal(*userBody, &payload)
-	if err != nil {
-		return "", err
-	}
-
-	name := strings.Split(payload["name"].(string), ", ")
-	if len(name) == 2 {
-		return fmt.Sprint(name[1], " ", name[0]), nil
-	}
-
-	Log(fmt.Sprint("issue finding name: ", username, " -- ", name), "error")
-
-	return username, nil
 }

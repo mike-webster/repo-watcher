@@ -32,6 +32,13 @@ func main() {
 			Log(fmt.Sprint("...sleep duration: ", sleep, " seconds..."), "info")
 			time.Sleep(sleep)
 		}
+	} else if cfg.RunType == "api" {
+		Log("...Run type: api...", "info")
+		router := SetupServer(fmt.Sprint(cfg.Port))
+		err := router.Run()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	Log("...stopping monitoring...", "info")

@@ -11,7 +11,7 @@ A Ruby application that provides desktop notifications from a GHe repo
 
 #### App Config
 Fill out the following values appropriately
-- token
+- ~~token~~
     - GitHub Personal Access Token
 - org_name
     - The organization that owns the repository
@@ -28,9 +28,8 @@ Fill out the following values appropriately
 - slack_webhook
     - The webhook you set up for your Slack app
 
-#### Turn up the volume
-As of now, I'm relying on `say` for this to actually notify the user, so you'll
-need to be able to hear it.
+#### Write your deployment manifest
+- Configure and deploy your app anywhere that has access to your GitHub Enterprise repository.
 
 #### Set up the Slack App
 - Create a slack app and set up an incoming webhook so you can post messages to a slack channel
@@ -38,16 +37,5 @@ need to be able to hear it.
 #### Start the server
 In a terminal session, run `make start`
 
-## How to get a Personal Access Token?
-- Log in to your repository
-- Click your icon in the top right corner
-- Click "Developer Settings" on the bottom of the left panel
-- Click "Personal access tokens" on the bottom of the left panel
-- Click "Generate new token"
-    - Name it whatever you want
-    - Give the token the following scopes
-        - repo (top level)
-        - notifications
-        - user (top level)
-        - read:discussion
-- Copy the token value and paste it into the app config "token" value
+## How to configure your webhooks?
+- TODO

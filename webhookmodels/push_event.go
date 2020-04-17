@@ -32,3 +32,8 @@ func (pep *PushEventPayload) CommitMessages() string {
 func (pep *PushEventPayload) ToString() string {
 	return fmt.Sprintf("pushed some changes to %v\nCommits:\n> %v", pep.Ref, pep.CommitMessages())
 }
+
+// Username returns the username of the user who triggered the event
+func (pep *PushEventPayload) Username() string {
+	return pep.Sender.Login
+}

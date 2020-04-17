@@ -18,3 +18,8 @@ type IssueCommentEventPayload struct {
 func (icep *IssueCommentEventPayload) ToString() string {
 	return fmt.Sprintf("%v on an issue: \n----\n| Title: %v\n----\nComment: \n%v", icep.Action, icep.Issue.Title, icep.Comment)
 }
+
+// Username returns the username of the user who triggered the event
+func (icep *IssueCommentEventPayload) Username() string {
+	return icep.Sender.Login
+}

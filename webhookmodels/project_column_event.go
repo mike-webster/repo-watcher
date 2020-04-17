@@ -17,3 +17,8 @@ type ProjectColumnEventPayload struct {
 func (pcep *ProjectColumnEventPayload) ToString() string {
 	return fmt.Sprintf("%v a column: \n----\nName: %v", pcep.Action, pcep.Column.Name)
 }
+
+// Username returns the username of the user who triggered the event
+func (pcep *ProjectColumnEventPayload) Username() string {
+	return pcep.Sender.Login
+}

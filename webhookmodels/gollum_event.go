@@ -28,3 +28,8 @@ func (gep *GollumEventPayload) Names() string {
 func (gep *GollumEventPayload) ToString() string {
 	return fmt.Sprintf("updated some wiki content: \n%v", gep.Names())
 }
+
+// Username returns the username of the user who triggered the event
+func (gep *GollumEventPayload) Username() string {
+	return gep.Sender.Login
+}

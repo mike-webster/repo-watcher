@@ -47,6 +47,8 @@ func (ghrh *ghRequestHeader) ToString() string {
 	return fmt.Sprint("Event: ", ghrh.Event, " -- Secret: ", ghrh.Secret)
 }
 
+// SetupServer will return a configured gin server ready to run on the
+// provided port.
 func SetupServer(port string) *Server {
 	router := gin.Default()
 	router.GET("/", handlerHealtcheck)
@@ -83,20 +85,18 @@ func handlerGitHub(ctx *gin.Context) {
 		return
 	}
 
-	summary, errCode, err := parseEventMessage(hdr.Event, ctx)
+	summary, err := parseEventMessage(ctx, hdr.Event)
 	if err != nil {
 		Log(err.Error(), "error")
-		if errCode == CodeInvalid {
-			errs := strings.Split(err.Error(), "\n")
-			msg := ""
-			for _, e := range errs {
-				v := strings.Replace(e, "Key: ", "", 1)
-				msg += fmt.Sprintf("\"%v\":\"%v\",", "reason", v)
-			}
-			msg = fmt.Sprintf("{%v}", strings.TrimRight(msg, ","))
-			ctx.JSON(CodeInvalid, msg)
-			return
+		errs := strings.Split(err.Error(), "\n")
+		msg := ""
+		for _, e := range errs {
+			v := strings.Replace(e, "Key: ", "", 1)
+			msg += fmt.Sprintf("\"%v\":\"%v\",", "reason", v)
 		}
+		msg = fmt.Sprintf("{%v}", strings.TrimRight(msg, ","))
+		ctx.JSON(CodeInvalid, msg)
+		return
 	}
 
 	if len(summary) > 0 {
@@ -105,117 +105,99 @@ func handlerGitHub(ctx *gin.Context) {
 	ctx.Status(CodeNoContent)
 }
 
-func parseEventMessage(event string, ctx *gin.Context) (string, int, error) {
-	message := ""
-	username := ""
-	var err error
-
-	if event == "create" {
-		event := &webhookmodels.CreateEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "gollum" {
-		event := &webhookmodels.GollumEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "issues" {
-		event := &webhookmodels.IssuesEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "issue_comment" {
-		event := &webhookmodels.IssueCommentEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "project_card" {
-		event := &webhookmodels.ProjectCardEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "project_column" {
-		event := &webhookmodels.ProjectColumnEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "pull_request" {
-		event := &webhookmodels.PullRequestEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "pull_request_review" {
-		event := &webhookmodels.PullRequestReviewEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "pull_request_review_comment" {
-		event := &webhookmodels.PullRequestReviewCommentEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(err.Error(), "error")
-		}
-	} else if event == "push" {
-		event := &webhookmodels.PushEventPayload{}
-		err = ctx.BindJSON(event)
-		if err == nil {
-			message = event.ToString()
-			username = event.Sender.Login
-		} else {
-			Log(fmt.Sprint("Bad Request: \n", ctx.Request.Form), "error")
-		}
-	} else {
-		Log(fmt.Sprint("Unsupported event: ", event), "error")
-	}
-
-	if len(username) > 0 && len(message) > 0 {
-		name, err := getNameFromUsername(username)
+func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error) {
+	switch eventName {
+	case "create":
+		var event webhookmodels.CreateEventPayload
+		err := ctx.BindJSON(&event)
 		if err != nil {
-			return fmt.Sprint(name, " ", message), 0, nil
+			return nil, err
 		}
-		Log(fmt.Sprint("couldn't parse display name: ", username), "error")
-		return fmt.Sprint(username, " ", message), 0, nil
+		return &event, nil
+	case "gollum":
+		var event webhookmodels.GollumEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "issue_comment":
+		var event webhookmodels.IssueCommentEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "issues":
+		var event webhookmodels.IssuesEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "project_card":
+		var event webhookmodels.ProjectCardEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "project_column":
+		var event webhookmodels.ProjectColumnEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "pull_request":
+		var event webhookmodels.PullRequestEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "pull_request_review_comment":
+		var event webhookmodels.PullRequestReviewCommentEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "pull_request_review":
+		var event webhookmodels.PullRequestReviewEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	case "push":
+		Log("found push event", "debug")
+		var event webhookmodels.PushEventPayload
+		err := ctx.BindJSON(&event)
+		if err != nil {
+			return nil, err
+		}
+		return &event, nil
+	default:
+		Log(fmt.Sprint("unknown event -- can't be parsed: ", eventName), "error")
+		return nil, nil
 	}
+}
 
+func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
+	message := ""
+
+	event, err := parseEvent(ctx, eventName)
 	if err != nil {
-		Log(fmt.Sprint("error parsing body for event: ", event, "\n\tError:\t\t", err.Error()), "error")
+		Log("couldnt parse event", "debug")
+		return "", err
 	}
 
-	return "", CodeInvalid, err
+	name, err := getNameFromUsername(event.Username())
+	if err != nil {
+		Log(fmt.Sprint("couldnt parse display name from login; error: ", err.Error()), "error")
+		return fmt.Sprint(name, " ", event.ToString()), nil
+	}
+
+	return fmt.Sprint(event.Username(), " ", message), nil
 }

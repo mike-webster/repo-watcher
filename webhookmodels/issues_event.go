@@ -19,3 +19,8 @@ type IssuesEventPayload struct {
 func (iep *IssuesEventPayload) ToString() string {
 	return fmt.Sprintf("%v an issue: \n----\n| Title: %v\n----\nBody: \n%v", iep.Action, iep.Issue.Title, iep.Issue.Body)
 }
+
+// Username returns the username of the user who triggered the event
+func (iep *IssuesEventPayload) Username() string {
+	return iep.Sender.Login
+}

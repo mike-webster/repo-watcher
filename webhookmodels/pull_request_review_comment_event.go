@@ -18,3 +18,8 @@ type PullRequestReviewCommentEventPayload struct {
 func (prrcep *PullRequestReviewCommentEventPayload) ToString() string {
 	return fmt.Sprintf("%v a comment on a pull request review for %v\n\t\tNew review state: %v\nComment: %v", prrcep.Action, prrcep.PullRequest.Title, prrcep.PullRequest.State, prrcep.Comment.Body)
 }
+
+// Username returns the username of the user who triggered the event
+func (prrcep *PullRequestReviewCommentEventPayload) Username() string {
+	return prrcep.Sender.Login
+}

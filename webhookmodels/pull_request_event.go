@@ -19,3 +19,8 @@ type PullRequestEventPayload struct {
 func (prep *PullRequestEventPayload) ToString() string {
 	return fmt.Sprintf("%v a pull request: \n----\n| Title: %v\n----\n| Body: \n%v", prep.Action, prep.PullRequest.Title, prep.PullRequest.Body)
 }
+
+// Username returns the username of the user who triggered the event
+func (prep *PullRequestEventPayload) Username() string {
+	return prep.Sender.Login
+}

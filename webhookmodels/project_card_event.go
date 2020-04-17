@@ -17,3 +17,8 @@ type ProjectCardEventPayload struct {
 func (pcep *ProjectCardEventPayload) ToString() string {
 	return fmt.Sprintf("%v a card: \n----\nNote: %v", pcep.Action, pcep.Card.Note)
 }
+
+// Username returns the username of the user who triggered the event
+func (pcep *ProjectCardEventPayload) Username() string {
+	return pcep.Sender.Login
+}

@@ -20,3 +20,8 @@ type CreateEventPayload struct {
 func (cep *CreateEventPayload) ToString() string {
 	return fmt.Sprintf("created a branch: %v", cep.Ref)
 }
+
+// Username returns the username of the user who triggered the event
+func (cep *CreateEventPayload) Username() string {
+	return cep.Sender.Login
+}

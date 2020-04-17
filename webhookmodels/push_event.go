@@ -1,7 +1,9 @@
 package webhookmodels
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -18,19 +20,39 @@ type PushEventPayload struct {
 
 // CommitMessages returns a formatted list of strings from all commits
 // in the push
-func (pep *PushEventPayload) CommitMessages() string {
+func (pep *PushEventPayload) CommitMessages() (string, *[]error) {
 	ret := []string{}
+	errs := []error{}
 	for _, c := range pep.Commits {
-		body := c.(map[string]interface{})
-		message := body["message"].(string)
-		ret = append(ret, message)
+		body, ok := c.(map[string]interface{})
+		if !ok {
+			errs = append(errs, errors.New("couldn't parse commits"))
+			continue
+		}
+
+		message, ok := body["message"].(string)
+		if !ok {
+			errs = append(errs, errors.New(fmt.Sprint("bad conversion: ", reflect.TypeOf(c))))
+			continue
+		}
+		ret = append(ret, fmt.Sprint(message))
 	}
-	return strings.Join(ret, "\n")
+	if len(errs) < 1 {
+		return strings.Join(ret, "\n"), nil
+	}
+
+	return strings.Join(ret, "\n"), &errs
 }
 
 // ToString outputs a summary message of the event
 func (pep *PushEventPayload) ToString() string {
-	return fmt.Sprintf("pushed some changes to %v\nCommits:\n> %v", pep.Ref, pep.CommitMessages())
+	messages, errs := pep.CommitMessages()
+	if errs != nil {
+		for _, m := range *errs {
+			fmt.Println("commit message parse error: ", m.Error())
+		}
+	}
+	return fmt.Sprintf("pushed some changes to %v\nCommits:\n> %v", pep.Ref, messages)
 }
 
 // Username returns the username of the user who triggered the event

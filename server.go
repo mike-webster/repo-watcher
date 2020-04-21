@@ -185,8 +185,6 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 }
 
 func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
-	message := ""
-
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
 		Log("couldnt parse event", "debug")
@@ -199,5 +197,5 @@ func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
 		return fmt.Sprint(name, " ", event.ToString()), nil
 	}
 
-	return fmt.Sprint(event.Username(), " ", message), nil
+	return fmt.Sprint(event.Username(), " ", event.ToString()), nil
 }

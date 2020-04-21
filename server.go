@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mike-webster/repo-watcher/env"
 	webhookmodels "github.com/mike-webster/repo-watcher/webhookmodels"
+	"github.com/sirupsen/logrus"
 )
 
 // CodeOK is for a 200 response
@@ -50,7 +55,9 @@ func (ghrh *ghRequestHeader) ToString() string {
 // SetupServer will return a configured gin server ready to run on the
 // provided port.
 func SetupServer(port string) *Server {
-	router := gin.Default()
+	router := gin.New()
+	router.Use(requestLogger())
+	router.Use(recovery())
 	router.GET("/", handlerHealtcheck)
 
 	v1 := router.Group("/v1")
@@ -198,4 +205,69 @@ func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
 	}
 
 	return fmt.Sprint(event.Username(), " ", event.ToString()), nil
+}
+
+func requestLogger() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		defer func(ctx *gin.Context) logrus.FieldLogger {
+			if ctx.Request.URL.Path == "/" && ctx.Writer.Status() == 200 {
+				return nil
+			}
+
+			fmt.Println("path: ", ctx.Request.URL.Path)
+
+			logger := defaultLogger().WithFields(logrus.Fields{
+				"client_ip":  ctx.ClientIP(),
+				"event":      "http.in",
+				"method":     ctx.Request.Method,
+				"path":       ctx.GetString("originalPath"),
+				"query":      ctx.Request.URL.RawQuery,
+				"referer":    ctx.Request.Referer(),
+				"status":     ctx.Writer.Status(),
+				"user_agent": ctx.Request.UserAgent(),
+			})
+
+			if len(ctx.Errors) > 0 {
+				logger.Error(strings.TrimSpace(ctx.Errors.String()))
+			} else {
+				logger.Info()
+			}
+			return logger
+		}(ctx)
+	}
+}
+
+func defaultLogger() *logrus.Logger {
+	logger := logrus.New()
+	logger.Formatter = &logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339Nano,
+	}
+	if env.GetConfig().LogLevel == "debug" {
+		logger.Level = logrus.DebugLevel
+	} else {
+		logger.Level = logrus.InfoLevel
+	}
+	return logger
+}
+
+// consolidate stack on crahes
+func recovery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				b, _ := ioutil.ReadAll(c.Request.Body)
+
+				Log(fmt.Sprint(map[string]interface{}{
+					"event":    "ErrPanicked",
+					"error":    r,
+					"stack":    string(debug.Stack()),
+					"path":     c.Request.RequestURI,
+					"formbody": string(b),
+				}), "error")
+
+				c.AbortWithStatus(500)
+			}
+		}()
+		c.Next() // execute all the handlers
+	}
 }

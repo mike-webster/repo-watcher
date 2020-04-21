@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"runtime/debug"
@@ -200,7 +201,7 @@ func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
 
 	name, err := getNameFromUsername(event.Username())
 	if err != nil {
-		Log(fmt.Sprint("couldnt parse display name from login; error: ", err.Error()), "error")
+		Log(fmt.Sprint("couldnt parse display name from login; error: ", err.Error(), " -- username: ", event.Username()), "error")
 		return fmt.Sprint(name, " ", event.ToString()), nil
 	}
 
@@ -214,18 +215,30 @@ func requestLogger() gin.HandlerFunc {
 				return nil
 			}
 
-			fmt.Println("path: ", ctx.Request.URL.Path)
+			// log body if one is given]
+			body, err := ioutil.ReadAll(ctx.Request.Body)
+			if err != nil {
+				Log(fmt.Sprint("error reading body: \n", err.Error()), "error")
+			}
+
+			// write the body back into the request
+			ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+			strBody := string(body)
+			strBody = strings.Replace(strBody, "\n", "", -1)
+			strBody = strings.Replace(strBody, "\t", "", -1)
 
 			logger := defaultLogger().WithFields(logrus.Fields{
-				"client_ip":  ctx.ClientIP(),
-				"event":      "http.in",
-				"method":     ctx.Request.Method,
-				"path":       ctx.GetString("originalPath"),
-				"query":      ctx.Request.URL.RawQuery,
-				"referer":    ctx.Request.Referer(),
-				"status":     ctx.Writer.Status(),
-				"user_agent": ctx.Request.UserAgent(),
-				"git_event":  ctx.Request.Header.Get("X-GitHub-Event"),
+				"client_ip":    ctx.ClientIP(),
+				"event":        "http.in",
+				"method":       ctx.Request.Method,
+				"path":         ctx.GetString("originalPath"),
+				"query":        ctx.Request.URL.RawQuery,
+				"referer":      ctx.Request.Referer(),
+				"status":       ctx.Writer.Status(),
+				"user_agent":   ctx.Request.UserAgent(),
+				"git_event":    ctx.Request.Header.Get("X-GitHub-Event"),
+				"request_body": strBody,
 			})
 
 			if len(ctx.Errors) > 0 {

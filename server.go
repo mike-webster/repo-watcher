@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -55,6 +57,7 @@ func (ghrh *ghRequestHeader) ToString() string {
 func SetupServer(port string) *Server {
 	router := gin.New()
 	router.Use(requestLogger())
+	router.Use(recovery())
 	router.GET("/", handlerHealtcheck)
 
 	v1 := router.Group("/v1")
@@ -245,4 +248,26 @@ func defaultLogger() *logrus.Logger {
 		logger.Level = logrus.InfoLevel
 	}
 	return logger
+}
+
+// consolidate stack on crahes
+func recovery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				b, _ := ioutil.ReadAll(c.Request.Body)
+
+				Log(fmt.Sprint(map[string]interface{}{
+					"event":    "ErrPanicked",
+					"error":    r,
+					"stack":    string(debug.Stack()),
+					"path":     c.Request.RequestURI,
+					"formbody": string(b),
+				}), "error")
+
+				c.AbortWithStatus(500)
+			}
+		}()
+		c.Next() // execute all the handlers
+	}
 }

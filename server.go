@@ -225,6 +225,7 @@ func requestLogger() gin.HandlerFunc {
 				"referer":    ctx.Request.Referer(),
 				"status":     ctx.Writer.Status(),
 				"user_agent": ctx.Request.UserAgent(),
+				"git_event":  ctx.Request.Header.Get("X-GitHub-Event"),
 			})
 
 			if len(ctx.Errors) > 0 {

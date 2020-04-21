@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"runtime/debug"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +53,7 @@ func (ghrh *ghRequestHeader) ToString() string {
 // provided port.
 func SetupServer(port string) *Server {
 	router := gin.Default()
+	router.Use(recovery())
 	router.GET("/", handlerHealtcheck)
 
 	v1 := router.Group("/v1")
@@ -200,4 +203,26 @@ func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
 	}
 
 	return fmt.Sprint(event.Username(), " ", message), nil
+}
+
+// consolidate stack on crahes
+func recovery() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				b, _ := ioutil.ReadAll(c.Request.Body)
+
+				Log(fmt.Sprint(map[string]interface{}{
+					"event":    "ErrPanicked",
+					"error":    r,
+					"stack":    string(debug.Stack()),
+					"path":     c.Request.RequestURI,
+					"formbody": string(b),
+				}), "error")
+
+				c.AbortWithStatus(500)
+			}
+		}()
+		c.Next() // execute all the handlers
+	}
 }

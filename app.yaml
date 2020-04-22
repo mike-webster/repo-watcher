@@ -11,6 +11,11 @@ default: &default
   log_level: "info"
   slack_webhook: ""
   run_type: "cron"
+  watchers:
+    - repo: ""
+      webhook: ""
+    - repo: ""
+      webhook: ""
 
 development:
   <<: *default
@@ -24,4 +29,3 @@ development:
   repo_to_watch: ""
   log_level: "info"
   run_type: "api"
-  

@@ -76,8 +76,9 @@ func loadAppConfig() *Config {
 		panic(err)
 	}
 
-	dev := configs["development"]
-
+	env := os.Getenv("GO_ENV")
+	fmt.Println("env: ", env)
+	dev := configs[env]
 	envToken := os.Getenv("API_TOKEN")
 	if len(envToken) > 0 {
 		dev.APIToken = envToken

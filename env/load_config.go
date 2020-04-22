@@ -11,20 +11,27 @@ import (
 
 var curConfig *Config
 
+// Watcher is a configuration for a source (repo) and destination (slack)
+type Watcher struct {
+	Repo    string `yaml:"repo"`
+	Webhook string `yaml:"webhook"`
+}
+
 // Config contains all the application's configured values
 type Config struct {
-	Port            int    `yaml:"port"`
-	APIToken        string `yaml:"token"`
-	BaseURLTemplate string `yaml:"base_url_template"`
-	OrgName         string `yaml:"org_name"`
-	EventEndpoint   string `yaml:"event_endpoint"`
-	UserEndpoint    string `yaml:"user_endpoint"`
-	RefreshTimer    int    `yaml:"refresh_seconds"`
-	RepoHost        string `yaml:"repo_host"`
-	RepoToWatch     string `yaml:"repo_to_watch"`
-	LogLevel        string `yaml:"log_level"`
-	SlackWebhook    string `yaml:"slack_webhook"`
-	RunType         string `yaml:"run_type"`
+	Port            int       `yaml:"port"`
+	APIToken        string    `yaml:"token"`
+	BaseURLTemplate string    `yaml:"base_url_template"`
+	OrgName         string    `yaml:"org_name"`
+	EventEndpoint   string    `yaml:"event_endpoint"`
+	UserEndpoint    string    `yaml:"user_endpoint"`
+	RefreshTimer    int       `yaml:"refresh_seconds"`
+	RepoHost        string    `yaml:"repo_host"`
+	RepoToWatch     string    `yaml:"repo_to_watch"`
+	LogLevel        string    `yaml:"log_level"`
+	SlackWebhook    string    `yaml:"slack_webhook"`
+	RunType         string    `yaml:"run_type"`
+	Watchers        []Watcher `yaml:"watchers"`
 }
 
 func (c *Config) BaseURL() string {

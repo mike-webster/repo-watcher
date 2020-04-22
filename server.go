@@ -194,6 +194,13 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 			return nil, err
 		}
 		return &event, nil
+	case "ping":
+		// returning an object to force proceesing to be skipped
+		return &webhookmodels.CreateEventPayload{
+			Repo: webhookmodels.Repository{
+				Name: "skip",
+			},
+		}, nil
 	default:
 		defaultLogger().WithFields(logrus.Fields{
 			"event": "unknown_github_event",
@@ -207,6 +214,11 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
 		return "", "", err
+	}
+
+	// this is just skipping the initial "ping" for now
+	if event.Repository() == "skip" {
+		return "", "", nil
 	}
 
 	name, err := getNameFromUsername(event.Username())

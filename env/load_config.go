@@ -20,14 +20,21 @@ type Watcher struct {
 
 type Watchers []Watcher
 
-func (w Watchers) Includes(repo string) bool {
+func (w Watchers) Select(repo string) *Watcher {
 	for _, r := range w {
-		if strings.ToLower(repo) == strings.ToLower(r.Repo) {
-			return true
+		if strings.ToLower(r.Repo) == strings.ToLower(repo) {
+			return &r
 		}
 	}
+	return nil
+}
 
-	return false
+func (w Watchers) ToString() string {
+	ret := []string{}
+	for _, r := range w {
+		ret = append(ret, r.Repo)
+	}
+	return strings.Join(ret, ",")
 }
 
 // Config contains all the application's configured values

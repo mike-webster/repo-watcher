@@ -23,3 +23,7 @@ func (prrcep *PullRequestReviewCommentEventPayload) ToString() string {
 func (prrcep *PullRequestReviewCommentEventPayload) Username() string {
 	return prrcep.Sender.Login
 }
+
+func (prrcep *PullRequestReviewCommentEventPayload) Repository() string {
+	return prrcep.Repo.Name
+}

@@ -4,4 +4,5 @@ package webhookmodels
 type Event interface {
 	ToString() string
 	Username() string
+	Repository() string
 }

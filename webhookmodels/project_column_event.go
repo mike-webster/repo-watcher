@@ -22,3 +22,7 @@ func (pcep *ProjectColumnEventPayload) ToString() string {
 func (pcep *ProjectColumnEventPayload) Username() string {
 	return pcep.Sender.Login
 }
+
+func (pcep *ProjectColumnEventPayload) Repository() string {
+	return pcep.Repo.Name
+}

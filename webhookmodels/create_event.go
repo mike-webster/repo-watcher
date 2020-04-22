@@ -25,3 +25,7 @@ func (cep *CreateEventPayload) ToString() string {
 func (cep *CreateEventPayload) Username() string {
 	return cep.Sender.Login
 }
+
+func (cep *CreateEventPayload) Repository() string {
+	return cep.Repo.Name
+}

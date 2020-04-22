@@ -57,10 +57,11 @@ func (ghrh *ghRequestHeader) ToString() string {
 
 // SetupServer will return a configured gin server ready to run on the
 // provided port.
-func SetupServer(port string) *Server {
+func SetupServer(port string, deps *AppDependencies) *Server {
 	router := gin.New()
 	router.Use(requestLogger())
 	router.Use(recovery())
+	router.Use(setDependencies(deps))
 	router.GET("/", handlerHealtcheck)
 
 	v1 := router.Group("/v1")
@@ -79,11 +80,11 @@ func handlerHealtcheck(ctx *gin.Context) {
 }
 
 func handlerGitHub(ctx *gin.Context) {
-	logger := defaultLogger()
+	deps := ctx.MustGet("deps").(*AppDependencies)
 	hdr := &ghRequestHeader{}
 	err := ctx.BindHeader(hdr)
 	if err != nil {
-		logger.WithField("error", err).Error("invalid request header -- could not bind")
+		deps.logger.WithField("error", err).Error("invalid request header -- could not bind")
 
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
@@ -96,9 +97,9 @@ func handlerGitHub(ctx *gin.Context) {
 		return
 	}
 
-	summary, err := parseEventMessage(ctx, hdr.Event, logger)
+	summary, repo, err := parseEventMessage(ctx, hdr.Event, deps.logger)
 	if err != nil {
-		logger.WithField("error", err).Error("couldn't parse event message")
+		deps.logger.WithField("error", err).Error("couldn't parse event message")
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
 		for _, e := range errs {
@@ -111,7 +112,12 @@ func handlerGitHub(ctx *gin.Context) {
 	}
 
 	if len(summary) > 0 {
-		sendMessageToSlack(summary)
+		err := deps.dispatchers.ProcessMessage(repo, summary, deps.logger)
+		if err != nil {
+			deps.logger.WithField("error", err).Error("error sending message")
+			ctx.Status(500)
+			return
+		}
 	}
 	ctx.Status(CodeNoContent)
 }
@@ -197,10 +203,10 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 	}
 }
 
-func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger) (string, error) {
+func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger) (string, string, error) {
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	name, err := getNameFromUsername(event.Username())
@@ -211,10 +217,10 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 			"username": event.Username(),
 		}).Error("couldnt retrieve name from username")
 
-		return fmt.Sprint(name, " ", event.ToString()), nil
+		return fmt.Sprint(name, " ", event.ToString()), event.Repository(), nil
 	}
 
-	return fmt.Sprint(event.Username(), " ", event.ToString()), nil
+	return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
 }
 
 func requestLogger() gin.HandlerFunc {
@@ -298,5 +304,12 @@ func recovery() gin.HandlerFunc {
 			}
 		}()
 		c.Next() // execute all the handlers
+	}
+}
+
+func setDependencies(deps *AppDependencies) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Set("deps", deps)
+		ctx.Next()
 	}
 }

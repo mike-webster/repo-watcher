@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"os/exec"
 	"regexp"
 	"strings"
 	"time"
@@ -16,37 +14,49 @@ import (
 )
 
 func main() {
-	cfg := env.GetConfig()
-	logger := defaultLogger()
-	logger.Info("initializing")
+	cfg, logger := initApp()
 
-	if cfg.RunType == "cron" {
-		// In order for this run type to work, I need to solve the persistence issue
-		// ... I'm using a file, after a cron task finishes, it's cleaned up
-		// ... Meaning every run, it would think all 30 events are new.
-		logger.WithField("run_type", "cron").Info()
-		runCheck(true, logger)
-	} else if cfg.RunType == "solo" {
+	if cfg.RunType == "solo" {
+		deps := AppDependencies{
+			dispatchers: getLocalDispatchers(),
+			logger:      logger,
+		}
 		logger.WithField("run_type", "solo").Info()
 
 		sleep := time.Duration(cfg.RefreshTimer) * time.Second
 		for {
-			runCheck(false, logger)
+			runCheck(&deps, logger)
 			logger.WithField("sleep_for", sleep).Info()
 			time.Sleep(sleep)
 		}
 	} else if cfg.RunType == "api" {
 		logger.WithField("run_type", "api").Info()
+		deps := AppDependencies{
+			dispatchers: getSlackDispatchers(),
+			logger:      logger,
+		}
 
-		router := SetupServer(fmt.Sprint(cfg.Port))
+		router := SetupServer(fmt.Sprint(cfg.Port), &deps)
 		err := router.Run()
 		if err != nil {
 			panic(err)
 		}
+	} else {
+		logger.WithField("run_type", "unknown").Error("crashing")
 	}
 }
 
-func runCheck(sendSlack bool, logger *logrus.Logger) {
+func initApp() (*env.Config, *logrus.Logger) {
+	cfg := env.GetConfig()
+	logger := defaultLogger()
+	logger.Info("initializing")
+
+	logger.WithField("watchers", cfg.Watchers).Info()
+
+	return cfg, logger
+}
+
+func runCheck(deps *AppDependencies, logger *logrus.Logger) {
 	cfg := env.GetConfig()
 
 	logger.WithField("event", "check_history").Debug("checking previous ids")
@@ -114,13 +124,13 @@ func runCheck(sendSlack bool, logger *logrus.Logger) {
 		// TODO: should we filter out the current user's notifications?
 		for _, event := range newEvents {
 			logEvent(event.Raw(), logger)
-			announceEvent(event, sendSlack, logger)
+			announceEvent(event, deps, logger)
 			time.Sleep(5 * time.Second)
 		}
 	}
 }
 
-func announceEvent(e models.RepositoryEvent, sendSlack bool, logger *logrus.Logger) {
+func announceEvent(e models.RepositoryEvent, deps *AppDependencies, logger *logrus.Logger) {
 	message := e.Say()
 	if strings.Contains(message, "#{actor}") {
 		realName, err := getNameFromUsername(e.TriggeredBy())
@@ -140,31 +150,9 @@ func announceEvent(e models.RepositoryEvent, sendSlack bool, logger *logrus.Logg
 		message = strings.Replace(message, "#{comment}", e.Comment(), 1)
 	}
 
-	if sendSlack {
-		sendMessageToSlack(message)
-	} else {
-		say(message)
-	}
-}
-
-func sendMessageToSlack(message string) error {
-	cfg := env.GetConfig()
-	body := fmt.Sprintf("{\"text\":\"%v\"}", message)
-	req, err := http.NewRequest("POST", cfg.SlackWebhook, strings.NewReader(body))
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != 200 {
-		return errors.New(fmt.Sprint("non-200 response: ", resp.StatusCode))
-	}
-	return nil
+	// TODO: low priority... I'm not really using solo mode
+	// make this able to use more  than just academy
+	deps.dispatchers.ProcessMessage("academy", message, deps.logger)
 }
 
 func getNameFromUsername(username string) (string, error) {
@@ -202,7 +190,23 @@ func camelRegexp(str string) string {
 	return str
 }
 
-func say(message string) {
-	cmd := exec.Command("say", message)
-	cmd.Run()
+func getSlackDispatchers() Dispatchers {
+	var ds Dispatchers
+	for _, d := range env.GetConfig().Watchers {
+		ds = append(ds, &SlackDispatcher{
+			URL:      d.Webhook,
+			RepoName: d.Repo,
+		})
+	}
+	return ds
+}
+
+func getLocalDispatchers() Dispatchers {
+	var ds Dispatchers
+	for _, d := range env.GetConfig().Watchers {
+		ds = append(ds, &LocalDispatcher{
+			RepoName: d.Repo,
+		})
+	}
+	return ds
 }

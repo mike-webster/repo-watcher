@@ -15,6 +15,7 @@ import (
 
 type testDeps struct {
 	Router *gin.Engine
+	Deps   *AppDependencies
 }
 
 func TestMain(t *testing.T) {
@@ -26,9 +27,18 @@ func TestMain(t *testing.T) {
 }
 
 func testSetup() *testDeps {
-	server := SetupServer("3199")
+	deps := AppDependencies{
+		logger: defaultLogger(),
+		dispatchers: Dispatchers{
+			&TestDispatcher{
+				RepoName: "test",
+			},
+		},
+	}
+	server := SetupServer("3199", &deps)
 	return &testDeps{
 		Router: server.Engine,
+		Deps:   &deps,
 	}
 }
 
@@ -92,6 +102,9 @@ func testGithub(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 		},
 	}
@@ -130,6 +143,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -150,6 +166,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -166,6 +185,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -184,6 +206,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -199,6 +224,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -216,6 +244,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -232,6 +263,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -253,6 +287,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -269,6 +306,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -290,6 +330,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",

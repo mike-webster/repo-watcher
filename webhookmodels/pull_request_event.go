@@ -24,3 +24,7 @@ func (prep *PullRequestEventPayload) ToString() string {
 func (prep *PullRequestEventPayload) Username() string {
 	return prep.Sender.Login
 }
+
+func (prep *PullRequestEventPayload) Repository() string {
+	return prep.Repo.Name
+}

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	env "github.com/mike-webster/repo-watcher/env"
 	models "github.com/mike-webster/repo-watcher/models"
@@ -21,7 +20,14 @@ func Log(message string, level string) {
 	if cfg.LogLevel == "info" && level == "debug" {
 		return
 	}
-	fmt.Println(time.Now().Format("2006-01-02T15:04:05-0700"), " -- ", strings.ToUpper(level), " -- ", message)
+	logger := defaultLogger()
+	if level == "debug" {
+		logger.Debug(message)
+	} else if level == "error" {
+		logger.Error(message)
+	} else {
+		logger.Info(message)
+	}
 }
 
 // MakeRequest will use the given url to make the appropriate request.

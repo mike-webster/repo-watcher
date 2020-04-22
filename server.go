@@ -31,6 +31,8 @@ const errMissingEvent = "Missing event value"
 const errInvalidBody = "Invalid POST body"
 const errInvalidHeader = "Invalid request headers"
 
+var _logger *logrus.Logger
+
 type ApiServer interface {
 	Start() error
 }
@@ -252,6 +254,10 @@ func requestLogger() gin.HandlerFunc {
 }
 
 func defaultLogger() *logrus.Logger {
+	if _logger != nil {
+		return _logger
+	}
+
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{
 		TimestampFormat: time.RFC3339Nano,
@@ -261,7 +267,8 @@ func defaultLogger() *logrus.Logger {
 	} else {
 		logger.Level = logrus.InfoLevel
 	}
-	return logger
+	_logger = logger
+	return _logger
 }
 
 // consolidate stack on crahes

@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	yaml "gopkg.in/yaml.v1"
 )
@@ -17,21 +18,33 @@ type Watcher struct {
 	Webhook string `yaml:"webhook"`
 }
 
+type Watchers []Watcher
+
+func (w Watchers) Includes(repo string) bool {
+	for _, r := range w {
+		if strings.ToLower(repo) == strings.ToLower(r.Repo) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Config contains all the application's configured values
 type Config struct {
-	Port            int       `yaml:"port"`
-	APIToken        string    `yaml:"token"`
-	BaseURLTemplate string    `yaml:"base_url_template"`
-	OrgName         string    `yaml:"org_name"`
-	EventEndpoint   string    `yaml:"event_endpoint"`
-	UserEndpoint    string    `yaml:"user_endpoint"`
-	RefreshTimer    int       `yaml:"refresh_seconds"`
-	RepoHost        string    `yaml:"repo_host"`
-	RepoToWatch     string    `yaml:"repo_to_watch"`
-	LogLevel        string    `yaml:"log_level"`
-	SlackWebhook    string    `yaml:"slack_webhook"`
-	RunType         string    `yaml:"run_type"`
-	Watchers        []Watcher `yaml:"watchers"`
+	Port            int      `yaml:"port"`
+	APIToken        string   `yaml:"token"`
+	BaseURLTemplate string   `yaml:"base_url_template"`
+	OrgName         string   `yaml:"org_name"`
+	EventEndpoint   string   `yaml:"event_endpoint"`
+	UserEndpoint    string   `yaml:"user_endpoint"`
+	RefreshTimer    int      `yaml:"refresh_seconds"`
+	RepoHost        string   `yaml:"repo_host"`
+	RepoToWatch     string   `yaml:"repo_to_watch"`
+	LogLevel        string   `yaml:"log_level"`
+	SlackWebhook    string   `yaml:"slack_webhook"`
+	RunType         string   `yaml:"run_type"`
+	Watchers        Watchers `yaml:"watchers"`
 }
 
 func (c *Config) BaseURL() string {

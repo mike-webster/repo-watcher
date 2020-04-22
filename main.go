@@ -16,17 +16,9 @@ import (
 )
 
 func main() {
-	cfg := env.GetConfig()
-	logger := defaultLogger()
-	logger.Info("initializing")
+	cfg, logger := initApp()
 
-	if cfg.RunType == "cron" {
-		// In order for this run type to work, I need to solve the persistence issue
-		// ... I'm using a file, after a cron task finishes, it's cleaned up
-		// ... Meaning every run, it would think all 30 events are new.
-		logger.WithField("run_type", "cron").Info()
-		runCheck(true, logger)
-	} else if cfg.RunType == "solo" {
+	if cfg.RunType == "solo" {
 		logger.WithField("run_type", "solo").Info()
 
 		sleep := time.Duration(cfg.RefreshTimer) * time.Second
@@ -43,7 +35,19 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+	} else {
+		logger.WithField("run_type", "unknown").Error("crashing")
 	}
+}
+
+func initApp() (*env.Config, *logrus.Logger) {
+	cfg := env.GetConfig()
+	logger := defaultLogger()
+	logger.Info("initializing")
+
+	logger.WithField("watchers", cfg.Watchers).Info()
+
+	return cfg, logger
 }
 
 func runCheck(sendSlack bool, logger *logrus.Logger) {

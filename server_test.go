@@ -101,7 +101,6 @@ func testGithub(t *testing.T, deps *testDeps) {
 			t.Run(c.Name, func(t *testing.T) {
 				body, err := json.Marshal(c.Body)
 				if err != nil {
-					Log(fmt.Sprint("error parsing body: ", c.Body), "error")
 					assert.Equal(t, nil, err)
 				}
 				resp := performRequest(deps.Router, c.Method, c.Path, c.Headers, body)

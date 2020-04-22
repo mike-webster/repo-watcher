@@ -12,77 +12,89 @@ import (
 
 	env "github.com/mike-webster/repo-watcher/env"
 	models "github.com/mike-webster/repo-watcher/models"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	cfg := env.GetConfig()
-	Log("...starting to monitor...", "info")
+	logger := defaultLogger()
+	logger.Info("initializing")
 
 	if cfg.RunType == "cron" {
 		// In order for this run type to work, I need to solve the persistence issue
 		// ... I'm using a file, after a cron task finishes, it's cleaned up
 		// ... Meaning every run, it would think all 30 events are new.
-		Log("...Run type: cron...", "info")
-		runCheck()
+		logger.WithField("run_type", "cron").Info()
+		runCheck(true, logger)
 	} else if cfg.RunType == "solo" {
-		Log("...Run type: solo...", "info")
+		logger.WithField("run_type", "solo").Info()
+
 		sleep := time.Duration(cfg.RefreshTimer) * time.Second
 		for {
-			runCheck()
-			Log(fmt.Sprint("...sleep duration: ", sleep, " seconds..."), "info")
+			runCheck(false, logger)
+			logger.WithField("sleep_for", sleep).Info()
 			time.Sleep(sleep)
 		}
 	} else if cfg.RunType == "api" {
-		Log("...Run type: api...", "info")
+		logger.WithField("run_type", "api").Info()
+
 		router := SetupServer(fmt.Sprint(cfg.Port))
 		err := router.Run()
 		if err != nil {
 			panic(err)
 		}
 	}
-
-	Log("...stopping monitoring...", "info")
 }
 
-func runCheck() {
+func runCheck(sendSlack bool, logger *logrus.Logger) {
 	cfg := env.GetConfig()
 
-	Log("...checking previous ids...", "debug")
+	logger.WithField("event", "check_history").Debug("checking previous ids")
 	ids, err := GetPreviousIDs()
 	if err != nil {
-		panic(err)
+		logger.WithField("error", err).Error("could not perform check")
+		return
 	}
 
-	Log(fmt.Sprint("previous ids: ", ids), "info")
-	Log("...finding most recents events...", "debug")
+	logger.WithFields(logrus.Fields{
+		"event": "id_check",
+		"ids":   ids,
+	}).Debug("previous ids")
 
 	url := fmt.Sprint(cfg.BaseURL(), fmt.Sprintf(cfg.EventEndpoint, cfg.OrgName, cfg.RepoToWatch))
 	eventsBody, err := MakeRequest(url, "", cfg.APIToken)
 	if err != nil {
-		panic(err)
+		logger.WithField("error", err).Error("request for events failed")
+		return
 	}
 
 	var events []models.Event
 	err = json.Unmarshal(*eventsBody, &events)
 	if err != nil {
-		panic(err)
+		logger.WithField("error", err).Error("couldn't unmarshal events")
+		return
 	}
 
-	Log(fmt.Sprint("found ", len(events), " events"), "info")
+	logger.WithField("event", "event_count").Debug(len(events))
 
 	var repoEvents []models.RepositoryEvent
 	for _, event := range events {
 		repoEvent, err := models.CreateRepositoryEvent(event)
 		if err != nil {
-			Log(err.Error(), "error")
-		} else {
-			repoEvents = append(repoEvents, repoEvent)
+			logger.WithField("event", err).Error("coudln't create event from payload")
+
+			continue
 		}
+
+		repoEvents = append(repoEvents, repoEvent)
 	}
 
 	err = WriteNewIDs(repoEvents)
 	if err != nil {
-		panic(err)
+		logger.WithField("error", err).Error("couldn't write event ids")
+
+		// probably shouldn't continue or this may be redundant
+		return
 	}
 
 	newEvents := []models.RepositoryEvent{}
@@ -101,24 +113,25 @@ func runCheck() {
 	if len(newEvents) > 0 {
 		// TODO: should we filter out the current user's notifications?
 		for _, event := range newEvents {
-			logEvent(event.Raw())
-			announceEvent(event)
+			logEvent(event.Raw(), logger)
+			announceEvent(event, sendSlack, logger)
 			time.Sleep(5 * time.Second)
 		}
 	}
 }
 
-func announceEvent(e models.RepositoryEvent) {
+func announceEvent(e models.RepositoryEvent, sendSlack bool, logger *logrus.Logger) {
 	message := e.Say()
 	if strings.Contains(message, "#{actor}") {
 		realName, err := getNameFromUsername(e.TriggeredBy())
 		if err != nil {
-			Log(err.Error(), "#error")
-			return
+			logger.WithField("error", err).Error("couldnt retrieve name from username")
+
+			realName = e.TriggeredBy()
 		}
 
 		message = strings.Replace(message, "#{actor}", realName, 1)
-		Log(fmt.Sprint("User message:", message), "info")
+		logger.WithField("user_message", message).Info()
 	}
 	if strings.Contains(message, "#{branch}") {
 		message = strings.Replace(message, "#{branch}", e.BranchName(), 1)
@@ -127,7 +140,11 @@ func announceEvent(e models.RepositoryEvent) {
 		message = strings.Replace(message, "#{comment}", e.Comment(), 1)
 	}
 
-	sendMessageToSlack(message)
+	if sendSlack {
+		sendMessageToSlack(message)
+	} else {
+		say(message)
+	}
 }
 
 func sendMessageToSlack(message string) error {
@@ -167,16 +184,15 @@ func getNameFromUsername(username string) (string, error) {
 		return fmt.Sprint(name[1], " ", name[0]), nil
 	}
 
-	Log(fmt.Sprint("issue finding name: ", username, " -- ", name), "error")
-
-	return username, nil
+	return "", errors.New(fmt.Sprint("could not find name for user: ", username))
 }
 
-func logEvent(e models.Event) {
-
-	Log(fmt.Sprint("User ", e.Actor.Username), "debug")
-	Log(fmt.Sprint("Event type: ", camelRegexp(e.Type)), "info")
-	Log(fmt.Sprint("Payload: ", e.Payload), "info")
+func logEvent(e models.Event, logger *logrus.Logger) {
+	logger.WithFields(logrus.Fields{
+		"user":    e.Actor.Username,
+		"type":    camelRegexp(e.Type),
+		"payload": e.Payload,
+	}).Info()
 }
 
 func camelRegexp(str string) string {

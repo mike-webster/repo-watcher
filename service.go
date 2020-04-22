@@ -10,25 +10,8 @@ import (
 	"os"
 	"strings"
 
-	env "github.com/mike-webster/repo-watcher/env"
 	models "github.com/mike-webster/repo-watcher/models"
 )
-
-// Log will print a message at the given level
-func Log(message string, level string) {
-	cfg := env.GetConfig()
-	if cfg.LogLevel == "info" && level == "debug" {
-		return
-	}
-	logger := defaultLogger()
-	if level == "debug" {
-		logger.Debug(message)
-	} else if level == "error" {
-		logger.Error(message)
-	} else {
-		logger.Info(message)
-	}
-}
 
 // MakeRequest will use the given url to make the appropriate request.
 // If a string is provided for the id parameter, it will be included
@@ -36,13 +19,11 @@ func Log(message string, level string) {
 // The return value should be able to be parsed into the desired struct
 // as long as an error is not returned.
 func MakeRequest(url string, id string, token string) (*[]byte, error) {
-	Log("getting request", "debug")
 	req, err := getRequest(url, id, token)
 	if err != nil {
 		return nil, err
 	}
 
-	Log("making request", "debug")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -64,13 +45,11 @@ func getRequest(url string, id string, token string) (*http.Request, error) {
 		url = fmt.Sprintf(url, id)
 	}
 
-	Log("generating reqeust", "debug")
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	Log("adding headers", "debug")
 	req.Header.Add("Authorization", fmt.Sprint("token ", token))
 
 	return req, nil
@@ -88,7 +67,6 @@ func contains(s []string, e string) bool {
 // GetPreviousIDs returns the last group of IDs returned from the events call
 func GetPreviousIDs() (*[]string, error) {
 	path := "history.txt"
-	Log(fmt.Sprint("Looking in path: ", path, " for previous ids"), "debug")
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		if strings.Contains(err.Error(), "no such file or directory") {

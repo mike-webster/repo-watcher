@@ -79,10 +79,11 @@ func handlerHealtcheck(ctx *gin.Context) {
 }
 
 func handlerGitHub(ctx *gin.Context) {
+	logger := defaultLogger()
 	hdr := &ghRequestHeader{}
 	err := ctx.BindHeader(hdr)
 	if err != nil {
-		Log(fmt.Sprint("invalid request header; error: ", err.Error()), "error")
+		logger.WithField("error", err).Error("invalid request header -- could not bind")
 
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
@@ -95,9 +96,9 @@ func handlerGitHub(ctx *gin.Context) {
 		return
 	}
 
-	summary, err := parseEventMessage(ctx, hdr.Event)
+	summary, err := parseEventMessage(ctx, hdr.Event, logger)
 	if err != nil {
-		Log(err.Error(), "error")
+		logger.WithField("error", err).Error("couldn't parse event message")
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
 		for _, e := range errs {
@@ -181,7 +182,6 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 		}
 		return &event, nil
 	case "push":
-		Log("found push event", "debug")
 		var event webhookmodels.PushEventPayload
 		err := ctx.BindJSON(&event)
 		if err != nil {
@@ -189,21 +189,28 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 		}
 		return &event, nil
 	default:
-		Log(fmt.Sprint("unknown event -- can't be parsed: ", eventName), "error")
+		defaultLogger().WithFields(logrus.Fields{
+			"event": "unknown_github_event",
+			"value": eventName,
+		}).Error("unknown event name from github")
 		return nil, nil
 	}
 }
 
-func parseEventMessage(ctx *gin.Context, eventName string) (string, error) {
+func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger) (string, error) {
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
-		Log("couldnt parse event", "debug")
 		return "", err
 	}
 
 	name, err := getNameFromUsername(event.Username())
 	if err != nil {
-		Log(fmt.Sprint("couldnt parse display name from login; error: ", err.Error(), " -- username: ", event.Username()), "error")
+		logger.WithFields(logrus.Fields{
+			"event":    "failed_name_retrieval",
+			"error":    err,
+			"username": event.Username(),
+		}).Error("couldnt retrieve name from username")
+
 		return fmt.Sprint(name, " ", event.ToString()), nil
 	}
 
@@ -218,17 +225,18 @@ func requestLogger() gin.HandlerFunc {
 			}
 
 			// log body if one is given]
+			strBody := ""
 			body, err := ioutil.ReadAll(ctx.Request.Body)
 			if err != nil {
-				Log(fmt.Sprint("error reading body: \n", err.Error()), "error")
+				defaultLogger().WithField("error", err).Error("cant read request body")
+			} else {
+				// write the body back into the request
+				ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+				strBody = string(body)
+				strBody = strings.Replace(strBody, "\n", "", -1)
+				strBody = strings.Replace(strBody, "\t", "", -1)
 			}
-
-			// write the body back into the request
-			ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-			strBody := string(body)
-			strBody = strings.Replace(strBody, "\n", "", -1)
-			strBody = strings.Replace(strBody, "\t", "", -1)
 
 			logger := defaultLogger().WithFields(logrus.Fields{
 				"client_ip":    ctx.ClientIP(),
@@ -278,13 +286,13 @@ func recovery() gin.HandlerFunc {
 			if r := recover(); r != nil {
 				b, _ := ioutil.ReadAll(c.Request.Body)
 
-				Log(fmt.Sprint(map[string]interface{}{
+				defaultLogger().WithFields(logrus.Fields{
 					"event":    "ErrPanicked",
 					"error":    r,
 					"stack":    string(debug.Stack()),
 					"path":     c.Request.RequestURI,
 					"formbody": string(b),
-				}), "error")
+				}).Error("panic recovered")
 
 				c.AbortWithStatus(500)
 			}

@@ -205,19 +205,15 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 	}
 
 	cfg := env.GetConfig()
-	if !cfg.Watchers.Includes(event.Repository()) {
-		watchers := []string{}
-		for _, w := range cfg.Watchers {
-			watchers = append(watchers, w.Repo)
-		}
 	watcher := cfg.Watchers.Select(event.Repository())
+	if watcher == nil {
 		logger.WithFields(logrus.Fields{
 			"event":        "orphaned_event",
 			"github_event": eventName,
 			"repository":   event.Repository(),
-			"watchers":     strings.Join(watchers, ","),
+			"watchers":     cfg.Watchers.ToString(),
 		}).Error()
-		return "", errors.New("orphaned event")
+		return "", "", errors.New("orphaned event")
 	}
 
 	name, err := getNameFromUsername(event.Username())

@@ -24,3 +24,7 @@ func (iep *IssuesEventPayload) ToString() string {
 func (iep *IssuesEventPayload) Username() string {
 	return iep.Sender.Login
 }
+
+func (iep *IssuesEventPayload) Repository() string {
+	return iep.Repo.Name
+}

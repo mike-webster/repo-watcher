@@ -33,3 +33,7 @@ func (gep *GollumEventPayload) ToString() string {
 func (gep *GollumEventPayload) Username() string {
 	return gep.Sender.Login
 }
+
+func (gep *GollumEventPayload) Repository() string {
+	return gep.Repo.Name
+}

@@ -59,3 +59,7 @@ func (pep *PushEventPayload) ToString() string {
 func (pep *PushEventPayload) Username() string {
 	return pep.Sender.Login
 }
+
+func (pep *PushEventPayload) Repository() string {
+	return pep.Repo.Name
+}

@@ -22,3 +22,7 @@ func (pcep *ProjectCardEventPayload) ToString() string {
 func (pcep *ProjectCardEventPayload) Username() string {
 	return pcep.Sender.Login
 }
+
+func (pcep *ProjectCardEventPayload) Repository() string {
+	return pcep.Repo.Name
+}

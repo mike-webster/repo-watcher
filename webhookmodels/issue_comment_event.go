@@ -23,3 +23,7 @@ func (icep *IssueCommentEventPayload) ToString() string {
 func (icep *IssueCommentEventPayload) Username() string {
 	return icep.Sender.Login
 }
+
+func (icep *IssueCommentEventPayload) Repository() string {
+	return icep.Repo.Name
+}

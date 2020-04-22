@@ -23,3 +23,7 @@ func (prrep *PullRequestReviewEventPayload) ToString() string {
 func (prrep *PullRequestReviewEventPayload) Username() string {
 	return prrep.Sender.Login
 }
+
+func (prrep *PullRequestReviewEventPayload) Repository() string {
+	return prrep.Repo.Name
+}

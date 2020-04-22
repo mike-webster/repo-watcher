@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"runtime/debug"
@@ -58,10 +57,11 @@ func (ghrh *ghRequestHeader) ToString() string {
 
 // SetupServer will return a configured gin server ready to run on the
 // provided port.
-func SetupServer(port string) *Server {
+func SetupServer(port string, deps *AppDependencies) *Server {
 	router := gin.New()
 	router.Use(requestLogger())
 	router.Use(recovery())
+	router.Use(setDependencies(deps))
 	router.GET("/", handlerHealtcheck)
 
 	v1 := router.Group("/v1")
@@ -80,11 +80,11 @@ func handlerHealtcheck(ctx *gin.Context) {
 }
 
 func handlerGitHub(ctx *gin.Context) {
-	logger := defaultLogger()
+	deps := ctx.MustGet("deps").(*AppDependencies)
 	hdr := &ghRequestHeader{}
 	err := ctx.BindHeader(hdr)
 	if err != nil {
-		logger.WithField("error", err).Error("invalid request header -- could not bind")
+		deps.logger.WithField("error", err).Error("invalid request header -- could not bind")
 
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
@@ -97,9 +97,9 @@ func handlerGitHub(ctx *gin.Context) {
 		return
 	}
 
-	summary, hook, err := parseEventMessage(ctx, hdr.Event, logger)
+	summary, repo, err := parseEventMessage(ctx, hdr.Event, deps.logger)
 	if err != nil {
-		logger.WithField("error", err).Error("couldn't parse event message")
+		deps.logger.WithField("error", err).Error("couldn't parse event message")
 		errs := strings.Split(err.Error(), "\n")
 		msg := ""
 		for _, e := range errs {
@@ -112,7 +112,12 @@ func handlerGitHub(ctx *gin.Context) {
 	}
 
 	if len(summary) > 0 {
-		sendMessageToSlack(hook, summary)
+		err := deps.dispatchers.ProcessMessage(repo, summary, deps.logger)
+		if err != nil {
+			deps.logger.WithField("error", err).Error("error sending message")
+			ctx.Status(500)
+			return
+		}
 	}
 	ctx.Status(CodeNoContent)
 }
@@ -204,18 +209,6 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 		return "", "", err
 	}
 
-	cfg := env.GetConfig()
-	watcher := cfg.Watchers.Select(event.Repository())
-	if watcher == nil {
-		logger.WithFields(logrus.Fields{
-			"event":        "orphaned_event",
-			"github_event": eventName,
-			"repository":   event.Repository(),
-			"watchers":     cfg.Watchers.ToString(),
-		}).Error()
-		return "", "", errors.New("orphaned event")
-	}
-
 	name, err := getNameFromUsername(event.Username())
 	if err != nil {
 		logger.WithFields(logrus.Fields{
@@ -224,10 +217,10 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 			"username": event.Username(),
 		}).Error("couldnt retrieve name from username")
 
-		return fmt.Sprint(name, " ", event.ToString()), watcher.Webhook, nil
+		return fmt.Sprint(name, " ", event.ToString()), event.Repository(), nil
 	}
 
-	return fmt.Sprint(event.Username(), " ", event.ToString()), watcher.Webhook, nil
+	return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
 }
 
 func requestLogger() gin.HandlerFunc {
@@ -311,5 +304,12 @@ func recovery() gin.HandlerFunc {
 			}
 		}()
 		c.Next() // execute all the handlers
+	}
+}
+
+func setDependencies(deps *AppDependencies) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Set("deps", deps)
+		ctx.Next()
 	}
 }

@@ -15,24 +15,30 @@ import (
 
 type testDeps struct {
 	Router *gin.Engine
+	Deps   *AppDependencies
 }
 
 func TestMain(t *testing.T) {
 	deps := testSetup()
 
 	testHealthcheck(t, deps)
-	// I need  to  disable these for now.  The tests are running
-	// against live shit... so  running tests actually sends output to
-	// slack.  I think I just need to abstract my way around it.
-
-	// testGithub(t, deps)
-	// testParseEvent(t, deps)
+	testGithub(t, deps)
+	testParseEvent(t, deps)
 }
 
 func testSetup() *testDeps {
-	server := SetupServer("3199")
+	deps := AppDependencies{
+		logger: defaultLogger(),
+		dispatchers: Dispatchers{
+			&TestDispatcher{
+				RepoName: "test",
+			},
+		},
+	}
+	server := SetupServer("3199", &deps)
 	return &testDeps{
 		Router: server.Engine,
+		Deps:   &deps,
 	}
 }
 
@@ -97,7 +103,7 @@ func testGithub(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 		},
@@ -138,7 +144,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -161,7 +167,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -181,7 +187,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -201,7 +207,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -220,7 +226,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -239,7 +245,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -259,7 +265,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -282,7 +288,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -302,7 +308,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -326,7 +332,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 					Login: "mwebster",
 				},
 				Repo: webhookmodels.Repository{
-					Name: "academy",
+					Name: "test",
 				},
 			},
 			DisplayName: "Mike Webster",

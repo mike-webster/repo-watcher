@@ -145,16 +145,16 @@ func announceEvent(e models.RepositoryEvent, sendSlack bool, logger *logrus.Logg
 	}
 
 	if sendSlack {
-		sendMessageToSlack(message)
+		// this is legacy...  probably think about cleaning  it up
+		sendMessageToSlack("academy", message)
 	} else {
 		say(message)
 	}
 }
 
-func sendMessageToSlack(message string) error {
-	cfg := env.GetConfig()
+func sendMessageToSlack(hook string, message string) error {
 	body := fmt.Sprintf("{\"text\":\"%v\"}", message)
-	req, err := http.NewRequest("POST", cfg.SlackWebhook, strings.NewReader(body))
+	req, err := http.NewRequest("POST", hook, strings.NewReader(body))
 	if err != nil {
 		return err
 	}

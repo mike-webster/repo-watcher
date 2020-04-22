@@ -97,7 +97,7 @@ func handlerGitHub(ctx *gin.Context) {
 		return
 	}
 
-	summary, err := parseEventMessage(ctx, hdr.Event, logger)
+	summary, hook, err := parseEventMessage(ctx, hdr.Event, logger)
 	if err != nil {
 		logger.WithField("error", err).Error("couldn't parse event message")
 		errs := strings.Split(err.Error(), "\n")
@@ -112,7 +112,7 @@ func handlerGitHub(ctx *gin.Context) {
 	}
 
 	if len(summary) > 0 {
-		sendMessageToSlack(summary)
+		sendMessageToSlack(hook, summary)
 	}
 	ctx.Status(CodeNoContent)
 }
@@ -198,10 +198,10 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 	}
 }
 
-func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger) (string, error) {
+func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger) (string, string, error) {
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	cfg := env.GetConfig()
@@ -210,6 +210,7 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 		for _, w := range cfg.Watchers {
 			watchers = append(watchers, w.Repo)
 		}
+	watcher := cfg.Watchers.Select(event.Repository())
 		logger.WithFields(logrus.Fields{
 			"event":        "orphaned_event",
 			"github_event": eventName,
@@ -227,10 +228,10 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 			"username": event.Username(),
 		}).Error("couldnt retrieve name from username")
 
-		return fmt.Sprint(name, " ", event.ToString()), nil
+		return fmt.Sprint(name, " ", event.ToString()), watcher.Webhook, nil
 	}
 
-	return fmt.Sprint(event.Username(), " ", event.ToString()), nil
+	return fmt.Sprint(event.Username(), " ", event.ToString()), watcher.Webhook, nil
 }
 
 func requestLogger() gin.HandlerFunc {

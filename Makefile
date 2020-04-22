@@ -1,6 +1,6 @@
 .PHONY: start
 start:
-	@go run main.go service.go server.go
+	@GO_ENV=development go run main.go service.go server.go
 
 .PHONY: test
 test:

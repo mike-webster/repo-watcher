@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"runtime/debug"
@@ -201,6 +202,21 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 	event, err := parseEvent(ctx, eventName)
 	if err != nil {
 		return "", err
+	}
+
+	cfg := env.GetConfig()
+	if !cfg.Watchers.Includes(event.Repository()) {
+		watchers := []string{}
+		for _, w := range cfg.Watchers {
+			watchers = append(watchers, w.Repo)
+		}
+		logger.WithFields(logrus.Fields{
+			"event":        "orphaned_event",
+			"github_event": eventName,
+			"repository":   event.Repository(),
+			"watchers":     strings.Join(watchers, ","),
+		}).Error()
+		return "", errors.New("orphaned event")
 	}
 
 	name, err := getNameFromUsername(event.Username())

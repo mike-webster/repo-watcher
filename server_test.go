@@ -21,8 +21,12 @@ func TestMain(t *testing.T) {
 	deps := testSetup()
 
 	testHealthcheck(t, deps)
-	testGithub(t, deps)
-	testParseEvent(t, deps)
+	// I need  to  disable these for now.  The tests are running
+	// against live shit... so  running tests actually sends output to
+	// slack.  I think I just need to abstract my way around it.
+
+	// testGithub(t, deps)
+	// testParseEvent(t, deps)
 }
 
 func testSetup() *testDeps {
@@ -92,6 +96,9 @@ func testGithub(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 		},
 	}
@@ -130,6 +137,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -150,6 +160,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -166,6 +179,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -184,6 +200,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -199,6 +218,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -216,6 +238,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -232,6 +257,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -253,6 +281,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				Sender: webhookmodels.User{
 					Login: "mwebster",
 				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
+				},
 			},
 			DisplayName: "Mike Webster",
 			Code:        CodeNoContent,
@@ -269,6 +300,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
 				},
 			},
 			DisplayName: "Mike Webster",
@@ -290,6 +324,9 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 				},
 				Sender: webhookmodels.User{
 					Login: "mwebster",
+				},
+				Repo: webhookmodels.Repository{
+					Name: "academy",
 				},
 			},
 			DisplayName: "Mike Webster",

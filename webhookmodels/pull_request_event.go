@@ -2,6 +2,8 @@ package webhookmodels
 
 import "fmt"
 
+import "github.com/mike-webster/repo-watcher/markdown"
+
 // PullRequestEventPayload is the request received when a pull request is assigned,
 // unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize,
 // ready_for_review, locked, unlocked or when a pull review is requested or removed.
@@ -17,7 +19,10 @@ type PullRequestEventPayload struct {
 
 // ToString outputs a summary message of the event
 func (prep *PullRequestEventPayload) ToString() string {
-	return fmt.Sprintf("%v a pull request: \n----\n| Title: %v\n----\n| Body: \n%v", prep.Action, prep.PullRequest.Title, prep.PullRequest.Body)
+	header := markdown.MarkdownBold(fmt.Sprintf("%v a pull request", prep.Action))
+	title := markdown.MarkdownLink(prep.PullRequest.URL, fmt.Sprintf("Title: %s", prep.PullRequest.Title))
+	body := markdown.MarkdownMultilineCode(prep.PullRequest.Body)
+	return fmt.Sprintf("%s\n%s\n%s", header, title, body)
 }
 
 // Username returns the username of the user who triggered the event

@@ -2,6 +2,8 @@ package webhookmodels
 
 import "fmt"
 
+import "github.com/mike-webster/repo-watcher/markdown"
+
 // PullRequestReviewCommentEventPayload is the request received when a comment
 // on a pull request's unified dif is created, edited, or deleted.
 //
@@ -16,7 +18,10 @@ type PullRequestReviewCommentEventPayload struct {
 
 // ToString outputs a summary message of the event
 func (prrcep *PullRequestReviewCommentEventPayload) ToString() string {
-	return fmt.Sprintf("%v a comment on a pull request review for %v\n\t\tNew review state: %v\nComment: %v", prrcep.Action, prrcep.PullRequest.Title, prrcep.PullRequest.State, prrcep.Comment.Body)
+	header := markdown.MarkdownBold(fmt.Sprintf("%s a comment on a pull request review", prrcep.Action))
+	title := markdown.MarkdownLink(prrcep.PullRequest.URL, fmt.Sprintf("Title:  %s", prrcep.PullRequest.Title))
+	comment := markdown.MarkdownMultilineCode(prrcep.Comment.Body)
+	return fmt.Sprintf("%s\n%s\n%s", header, title, comment)
 }
 
 // Username returns the username of the user who triggered the event

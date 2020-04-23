@@ -20,7 +20,7 @@ type IssuesEventPayload struct {
 // ToString outputs a summary message of the event
 func (iep *IssuesEventPayload) ToString() string {
 	header := markdown.MarkdownBold(fmt.Sprintf("%v an issue", iep.Action))
-	title := markdown.MarkdownItalic(fmt.Sprintf("Tutle: %v", iep.Issue.Title))
+	title := markdown.MarkdownLink(iep.Issue.URL, fmt.Sprintf("Title: %v", iep.Issue.Title))
 	body := markdown.MarkdownMultilineCode(iep.Issue.Body)
 	return fmt.Sprintf("%s\n%s\n%s", header, title, body)
 }

@@ -3,6 +3,7 @@ package webhookmodels
 import (
 	"errors"
 	"fmt"
+	"github.com/mike-webster/repo-watcher/markdown"
 	"reflect"
 	"strings"
 )
@@ -52,7 +53,10 @@ func (pep *PushEventPayload) ToString() string {
 			fmt.Println("commit message parse error: ", m.Error())
 		}
 	}
-	return fmt.Sprintf("pushed some changes to %v\nCommits:\n> %v", pep.Ref, messages)
+	header := markdown.MarkdownLink(pep.URL, fmt.Sprintf("pushed some changes to %s", pep.Ref))
+	title := markdown.MarkdownItalic("Commits")
+	body := markdown.MarkdownCode(messages)
+	return fmt.Sprintf("%s\n%s\n%s", header, title, body)
 }
 
 // Username returns the username of the user who triggered the event

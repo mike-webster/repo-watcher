@@ -2,6 +2,8 @@ package webhookmodels
 
 import "fmt"
 
+import "github.com/mike-webster/repo-watcher/markdown"
+
 // PullRequestReviewEventPayload is the request received when a pull request review
 // is submitted into a non-pending state, the body is edited, or the review is dismissed.
 //
@@ -16,7 +18,11 @@ type PullRequestReviewEventPayload struct {
 
 // ToString outputs a summary message of the event
 func (prrep *PullRequestReviewEventPayload) ToString() string {
-	return fmt.Sprintf("%v a pull request review for %v\n\t\tNew review state: %v", prrep.Action, prrep.PullRequest.Title, prrep.PullRequest.State)
+	header := markdown.MarkdownBold(fmt.Sprintf("%s a pull request review", prrep.Action))
+	title := markdown.MarkdownLink(prrep.PullRequest.URL, fmt.Sprintf("Title: %s", prrep.PullRequest.Title))
+	state := fmt.Sprintf("State: %s", prrep.PullRequest.State)
+	body := markdown.MarkdownMultilineCode(fmt.Sprintf("Body: \n%v", prrep.PullRequest.Body))
+	return fmt.Sprintf("%s\n%s\n%s\n%s", header, title, state, body)
 }
 
 // Username returns the username of the user who triggered the event

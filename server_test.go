@@ -10,6 +10,7 @@ import (
 
 	"github.com/bmizerany/assert"
 	"github.com/gin-gonic/gin"
+	dispatchers "github.com/mike-webster/repo-watcher/dispatchers"
 	"github.com/mike-webster/repo-watcher/webhookmodels"
 )
 
@@ -29,9 +30,11 @@ func TestMain(t *testing.T) {
 func testSetup() *testDeps {
 	deps := AppDependencies{
 		logger: defaultLogger(),
-		dispatchers: Dispatchers{
-			&TestDispatcher{
-				RepoName: "test",
+		dispatchers: dispatchers.Dispatchers{
+			&dispatchers.TestDispatcher{
+				RepoName:  testWatch.Repo,
+				URL:       testWatch.Webhook,
+				MakeCalls: cfg.MakeTestCalls,
 			},
 		},
 	}

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	dispatchers "github.com/mike-webster/repo-watcher/dispatchers"
 	env "github.com/mike-webster/repo-watcher/env"
 	models "github.com/mike-webster/repo-watcher/models"
 	"github.com/sirupsen/logrus"
@@ -190,10 +191,10 @@ func camelRegexp(str string) string {
 	return str
 }
 
-func getSlackDispatchers() Dispatchers {
-	var ds Dispatchers
+func getSlackDispatchers() dispatchers.Dispatchers {
+	var ds dispatchers.Dispatchers
 	for _, d := range env.GetConfig().Watchers {
-		ds = append(ds, &SlackDispatcher{
+		ds = append(ds, &dispatchers.SlackDispatcher{
 			URL:      d.Webhook,
 			RepoName: d.Repo,
 		})
@@ -201,10 +202,10 @@ func getSlackDispatchers() Dispatchers {
 	return ds
 }
 
-func getLocalDispatchers() Dispatchers {
-	var ds Dispatchers
+func getLocalDispatchers() dispatchers.Dispatchers {
+	var ds dispatchers.Dispatchers
 	for _, d := range env.GetConfig().Watchers {
-		ds = append(ds, &LocalDispatcher{
+		ds = append(ds, &dispatchers.LocalDispatcher{
 			RepoName: d.Repo,
 		})
 	}

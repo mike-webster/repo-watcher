@@ -187,7 +187,7 @@ func testParseEvent(t *testing.T, deps *testDeps) {
 			EventName: "issue_comment",
 			Body: &webhookmodels.IssueCommentEventPayload{
 				Action:  "commented",
-				Comment: "test commment",
+				Comment: webhookmodels.IssueComment{Body: "test comment"},
 				Issue: webhookmodels.Issue{
 					Title: "test title",
 				},

@@ -114,7 +114,10 @@ func handlerGitHub(ctx *gin.Context) {
 	if len(summary) > 0 {
 		err := deps.dispatchers.ProcessMessage(repo, summary, deps.logger)
 		if err != nil {
-			deps.logger.WithField("error", err).Error("error sending message")
+			deps.logger.WithFields(logrus.Fields{
+				"error":   err,
+				"payload": summary,
+			}).Error("error sending message")
 			ctx.Status(500)
 			return
 		}

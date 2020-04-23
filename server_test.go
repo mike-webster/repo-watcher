@@ -11,12 +11,14 @@ import (
 	"github.com/bmizerany/assert"
 	"github.com/gin-gonic/gin"
 	dispatchers "github.com/mike-webster/repo-watcher/dispatchers"
+	"github.com/mike-webster/repo-watcher/env"
 	"github.com/mike-webster/repo-watcher/webhookmodels"
 )
 
 type testDeps struct {
-	Router *gin.Engine
-	Deps   *AppDependencies
+	Router    *gin.Engine
+	Deps      *AppDependencies
+	MakeCalls bool
 }
 
 func TestMain(t *testing.T) {
@@ -28,6 +30,8 @@ func TestMain(t *testing.T) {
 }
 
 func testSetup() *testDeps {
+	cfg := env.GetConfig()
+	testWatch := cfg.Watchers.Select("test")
 	deps := AppDependencies{
 		logger: defaultLogger(),
 		dispatchers: dispatchers.Dispatchers{
@@ -40,8 +44,9 @@ func testSetup() *testDeps {
 	}
 	server := SetupServer("3199", &deps)
 	return &testDeps{
-		Router: server.Engine,
-		Deps:   &deps,
+		Router:    server.Engine,
+		Deps:      &deps,
+		MakeCalls: cfg.MakeTestCalls,
 	}
 }
 

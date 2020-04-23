@@ -52,6 +52,7 @@ type Config struct {
 	SlackWebhook    string   `yaml:"slack_webhook"`
 	RunType         string   `yaml:"run_type"`
 	Watchers        Watchers `yaml:"watchers"`
+	MakeTestCalls   bool     `yaml:"test_calls"`
 }
 
 func (c *Config) BaseURL() string {

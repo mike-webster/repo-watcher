@@ -31,8 +31,6 @@ const errMissingEvent = "Missing event value"
 const errInvalidBody = "Invalid POST body"
 const errInvalidHeader = "Invalid request headers"
 
-var _logger *logrus.Logger
-
 type ApiServer interface {
 	Start() error
 }
@@ -212,7 +210,7 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 			},
 		}, nil
 	default:
-		defaultLogger().WithFields(logrus.Fields{
+		defaultLogger(ctx).WithFields(logrus.Fields{
 			"event": "unknown_github_event",
 			"value": eventName,
 		}).Error("unknown event name from github")
@@ -264,7 +262,7 @@ func requestLogger() gin.HandlerFunc {
 			strBody := ""
 			body, err := ioutil.ReadAll(ctx.Request.Body)
 			if err != nil {
-				defaultLogger().WithField("error", err).Error("cant read request body")
+				defaultLogger(ctx).WithField("error", err).Error("cant read request body")
 			} else {
 				// write the body back into the request
 				ctx.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
@@ -274,7 +272,7 @@ func requestLogger() gin.HandlerFunc {
 				strBody = strings.Replace(strBody, "\t", "", -1)
 			}
 
-			logger := defaultLogger().WithFields(logrus.Fields{
+			logger := defaultLogger(ctx).WithFields(logrus.Fields{
 				"client_ip":    ctx.ClientIP(),
 				"event":        "http.in",
 				"method":       ctx.Request.Method,
@@ -297,11 +295,28 @@ func requestLogger() gin.HandlerFunc {
 	}
 }
 
-func defaultLogger() *logrus.Logger {
-	if _logger != nil {
-		return _logger
+func defaultLogger(ctx *gin.Context) *logrus.Logger {
+	if ctx == nil {
+		return newLogger()
 	}
 
+	var logger *logrus.Logger
+	l, exists := ctx.Get("logger")
+	if !exists {
+		logger = newLogger()
+		ctx.Set("logger", logger)
+		return logger
+	}
+
+	logger, ok := l.(*logrus.Logger)
+	if !ok {
+		return newLogger()
+	}
+
+	return logger
+}
+
+func newLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.Formatter = &logrus.JSONFormatter{
 		TimestampFormat: time.RFC3339Nano,
@@ -312,7 +327,7 @@ func defaultLogger() *logrus.Logger {
 		logger.Level = logrus.InfoLevel
 	}
 	_logger = logger
-	return _logger
+	return logger
 }
 
 // consolidate stack on crahes
@@ -322,7 +337,6 @@ func recovery() gin.HandlerFunc {
 			if r := recover(); r != nil {
 				b, _ := ioutil.ReadAll(c.Request.Body)
 
-				defaultLogger().WithFields(logrus.Fields{
 					"event":    "ErrPanicked",
 					"error":    r,
 					"stack":    string(debug.Stack()),

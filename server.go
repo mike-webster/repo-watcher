@@ -204,6 +204,13 @@ func parseEvent(ctx *gin.Context, eventName string) (webhookmodels.Event, error)
 				Name: "skip",
 			},
 		}, nil
+	case "status":
+		// returning an object to force proceesing to be skipped
+		return &webhookmodels.CreateEventPayload{
+			Repo: webhookmodels.Repository{
+				Name: "skip",
+			},
+		}, nil
 	default:
 		defaultLogger().WithFields(logrus.Fields{
 			"event": "unknown_github_event",

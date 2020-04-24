@@ -15,7 +15,7 @@ type PushEventPayload struct {
 	Ref     string        `json:"ref" binding:"required"`
 	Commits []interface{} `json:"commits"`
 	Repo    Repository    `json:"repository"`
-	URL     string        `json:"html_url"`
+	URL     string        `json:"compare"`
 	Sender  User          `json:"sender"`
 }
 

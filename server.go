@@ -243,7 +243,7 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 			"event":    "failed_name_retrieval",
 			"error":    err,
 			"username": event.Username(),
-		}).Error("couldnt retrieve name from username")
+		}).Warn("couldnt retrieve name from username")
 
 		return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
 	}

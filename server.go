@@ -247,10 +247,10 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 			"username": event.Username(),
 		}).Error("couldnt retrieve name from username")
 
-		return fmt.Sprint(name, " ", event.ToString()), event.Repository(), nil
+		return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
 	}
 
-	return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
+	return fmt.Sprint(name, " ", event.ToString()), event.Repository(), nil
 }
 
 func requestLogger() gin.HandlerFunc {

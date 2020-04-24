@@ -22,7 +22,7 @@ type IssueComment struct {
 
 // ToString outputs a summary message of the event
 func (icep *IssueCommentEventPayload) ToString() string {
-	header := markdown.MarkdownBold(fmt.Sprintf("%s on an issue", icep.Action))
+	header := markdown.MarkdownBold(fmt.Sprintf("%s a comment on an issue", icep.Action))
 	title := markdown.MarkdownLink(icep.Issue.URL, fmt.Sprintf("Title: %s", icep.Issue.Title))
 	comment := markdown.MarkdownMultilineCode(fmt.Sprintf(icep.Comment.Body))
 	return fmt.Sprintf("%s\n%s\n%s", header, title, comment)

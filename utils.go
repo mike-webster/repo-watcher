@@ -18,6 +18,8 @@ import (
 // in the route.
 // The return value should be able to be parsed into the desired struct
 // as long as an error is not returned.
+//
+// This is used for the old shit.  I need to figure out what I'm doing with that.
 func MakeRequest(url string, id string, token string) (*[]byte, error) {
 	req, err := getRequest(url, id, token)
 	if err != nil {
@@ -53,15 +55,6 @@ func getRequest(url string, id string, token string) (*http.Request, error) {
 	req.Header.Add("Authorization", fmt.Sprint("token ", token))
 
 	return req, nil
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 // GetPreviousIDs returns the last group of IDs returned from the events call

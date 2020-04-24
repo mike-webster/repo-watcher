@@ -15,7 +15,7 @@ type PushEventPayload struct {
 	Ref     string        `json:"ref" binding:"required"`
 	Commits []interface{} `json:"commits"`
 	Repo    Repository    `json:"repository"`
-	URL     string        `json:"html_url"`
+	URL     string        `json:"compare"`
 	Sender  User          `json:"sender"`
 }
 
@@ -54,8 +54,8 @@ func (pep *PushEventPayload) ToString() string {
 		}
 	}
 	header := markdown.MarkdownLink(pep.URL, fmt.Sprintf("pushed some changes to %s", pep.Ref))
-	title := markdown.MarkdownItalic("Commits")
-	body := markdown.MarkdownCode(messages)
+	title := markdown.MarkdownItalic("Commits:")
+	body := markdown.MarkdownMultilineCode(messages)
 	return fmt.Sprintf("%s\n%s\n%s", header, title, body)
 }
 

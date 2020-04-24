@@ -15,7 +15,7 @@ type PullRequest struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	Assignee  User       `json:"assignee"`
-	Labels    []Label    `json:"labels"`
+	Labels    Labels     `json:"labels"`
 	Repo      Repository `json:"repository"`
 	Sender    User       `json:"sender"`
 }

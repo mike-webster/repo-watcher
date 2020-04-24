@@ -22,7 +22,16 @@ func (prep *PullRequestEventPayload) ToString() string {
 	header := markdown.MarkdownBold(fmt.Sprintf("%v a pull request", prep.Action))
 	title := markdown.MarkdownLink(prep.PullRequest.URL, fmt.Sprintf("Title: %s", prep.PullRequest.Title))
 	body := markdown.MarkdownMultilineCode(prep.PullRequest.Body)
-	return fmt.Sprintf("%s\n%s\n%s", header, title, body)
+	if prep.Action == "opened" || prep.Action == "edited" {
+		return fmt.Sprintf("%s\n%s\n%s", header, title, body)
+	} else if prep.Action == "labeled" {
+		labels := markdown.MarkdownMultilineCode(markdown.MarkdownList(prep.PullRequest.Labels.Names()))
+		return fmt.Sprintf("%s\n%s\nLabels:\n%s", header, title, labels)
+	} else if prep.Action == "closed" {
+		return fmt.Sprintf("%s\n%s", header, title)
+	}
+
+	return ""
 }
 
 // Username returns the username of the user who triggered the event

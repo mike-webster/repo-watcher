@@ -33,7 +33,7 @@ func testSetup() *testDeps {
 	cfg := env.GetConfig()
 	testWatch := cfg.Watchers.Select("test")
 	deps := AppDependencies{
-		logger: defaultLogger(),
+		logger: defaultLogger(nil),
 		dispatchers: dispatchers.Dispatchers{
 			&dispatchers.TestDispatcher{
 				RepoName:  testWatch.Repo,

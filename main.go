@@ -49,7 +49,7 @@ func main() {
 
 func initApp() (*env.Config, *logrus.Logger) {
 	cfg := env.GetConfig()
-	logger := defaultLogger()
+	logger := defaultLogger(nil)
 	logger.Info("initializing")
 
 	logger.WithField("watchers", cfg.Watchers).Info()

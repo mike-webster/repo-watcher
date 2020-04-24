@@ -23,11 +23,6 @@ func (sd *SlackDispatcher) SendMessage(message string, logger *logrus.Logger) er
 	// these characters need to be escaped for slack
 	// https://api.slack.com/reference/surfaces/formatting#escaping
 	body := getBlockKitText(message)
-	escMessage := strings.Replace(body, "&", "&amp;", -1)
-	escMessage = strings.Replace(escMessage, "<", "&lt;", -1)
-	escMessage = strings.Replace(escMessage, ">", "&gt;", -1)
-
-	//body := fmt.Sprintf("{\"text\":\"%v\"}", escMessage)
 	req, err := http.NewRequest("POST", sd.URL, strings.NewReader(body))
 	if err != nil {
 		return err

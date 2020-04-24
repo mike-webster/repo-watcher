@@ -326,7 +326,6 @@ func newLogger() *logrus.Logger {
 	} else {
 		logger.Level = logrus.InfoLevel
 	}
-	_logger = logger
 	return logger
 }
 
@@ -337,6 +336,7 @@ func recovery() gin.HandlerFunc {
 			if r := recover(); r != nil {
 				b, _ := ioutil.ReadAll(c.Request.Body)
 
+				defaultLogger(c).WithFields(logrus.Fields{
 					"event":    "ErrPanicked",
 					"error":    r,
 					"stack":    string(debug.Stack()),
@@ -354,6 +354,7 @@ func recovery() gin.HandlerFunc {
 func setDependencies(deps *AppDependencies) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Set("deps", deps)
+		ctx.Set("logger", defaultLogger(ctx))
 		ctx.Next()
 	}
 }

@@ -20,7 +20,7 @@ type PullRequestReviewEventPayload struct {
 func (prrep *PullRequestReviewEventPayload) ToString() string {
 	header := markdown.MarkdownBold(fmt.Sprintf("%s a pull request review", prrep.Action))
 	title := markdown.MarkdownLink(prrep.PullRequest.URL, fmt.Sprintf("Title: %s", prrep.PullRequest.Title))
-	state := fmt.Sprintf("State: %s", prrep.PullRequest.State)
+	state := fmt.Sprintf("State: %s", prrep.Review.State)
 	body := markdown.MarkdownMultilineCode(fmt.Sprintf("Body: \n%v", prrep.PullRequest.Body))
 	return fmt.Sprintf("%s\n%s\n%s\n%s", header, title, state, body)
 }

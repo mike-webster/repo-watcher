@@ -231,6 +231,14 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 		return "", "", nil
 	}
 
+	if len(event.ToString()) < 1 {
+		logger.WithFields(logrus.Fields{
+			"event":      "skipping_notification",
+			"event_name": eventName,
+		}).Warn("no message returned, skipping notify")
+		return "", "", nil
+	}
+
 	name, err := getNameFromUsername(event.Username())
 	if err != nil {
 		logger.WithFields(logrus.Fields{

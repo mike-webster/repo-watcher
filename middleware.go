@@ -81,8 +81,20 @@ func requestLogger() gin.HandlerFunc {
 				logger.Info()
 			}
 
+			sBody := struct {
+				Repository struct {
+					Name string `json:"name"`
+				} `json:"repository"`
+			}{}
+
+			err = json.Unmarshal([]byte(strBody), &sBody)
+			if err != nil {
+				logger.WithField("error", err).Error("couldn't unmarshall body to get repo name")
+			}
+
 			ctx.Set("logger", defaultLogger(ctx).WithFields(logrus.Fields{
 				"git_event": ctx.Request.Header.Get("X-GitHub-Event"),
+				"git_repo":  sBody.Repository.Name,
 			}))
 
 			return logger

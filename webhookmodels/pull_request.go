@@ -12,6 +12,9 @@ type PullRequest struct {
 	Title     string     `json:"title"`
 	User      User       `json:"user"`
 	Body      string     `json:"body"`
+	Merged    bool       `json:"merged"`
+	Additions int        `json:"additions"`
+	Deletions int        `json:"deletions"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	Assignee  User       `json:"assignee"`

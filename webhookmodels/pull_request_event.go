@@ -1,8 +1,10 @@
 package webhookmodels
 
-import "fmt"
+import (
+	"fmt"
 
-import "github.com/mike-webster/repo-watcher/markdown"
+	"github.com/mike-webster/repo-watcher/markdown"
+)
 
 // PullRequestEventPayload is the request received when a pull request is assigned,
 // unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize,
@@ -15,6 +17,9 @@ type PullRequestEventPayload struct {
 	PullRequest PullRequest `json:"pull_request"`
 	Repo        Repository  `json:"repository"`
 	Sender      User        `json:"sender"`
+	Merged      bool        `json:"merged"`
+	Additions   int         `json:"additions"`
+	Deletions   int         `json:"deletions"`
 }
 
 // ToString outputs a summary message of the event

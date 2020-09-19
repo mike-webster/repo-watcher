@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mike-webster/repo-watcher/keys"
 	webhookmodels "github.com/mike-webster/repo-watcher/webhookmodels"
 	"github.com/sirupsen/logrus"
+
+	"github.com/mike-webster/teamcity10"
 )
 
 type ApiServer interface {
@@ -226,5 +231,54 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 		return fmt.Sprint(event.Username(), " ", event.ToString()), event.Repository(), nil
 	}
 
+	if autoMergeEnabled(ctx) {
+		pr, deploy := webhookmodels.ShouldDeployMaster(&event)
+		if deploy {
+			tccx := getTCContext(ctx)
+
+			builds, err := teamcity10.GetBuilds(tccx, "id1uat_Academy_3Deploy")
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"event":    "failed_build_retrieval",
+					"error":    err,
+					"username": event.Username(),
+				}).Warn("couldnt retrieve recent builds for project")
+
+			} else {
+				for _, i := range *builds {
+					if strings.ToLower(i.Branch) == strings.ToLower(pr.PullRequest.Head.Branch) {
+						_, err := teamcity10.TriggerBuild(tccx, "id1uat_Academy_3Deploy", "master", "id1uat_Academy")
+						if err != nil {
+							logger.WithFields(logrus.Fields{
+								"event":    "failed_build_trigger",
+								"error":    err,
+								"username": event.Username(),
+							}).Warn("couldnt trigger auto deploy of master")
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return fmt.Sprint(name, " ", event.ToString()), event.Repository(), nil
+}
+
+func autoMergeEnabled(ctx context.Context) bool {
+	if iVal := keys.Get(ctx, keys.AutoMerge); iVal != nil {
+		val, ok := iVal.(bool)
+		if !ok {
+			return false
+		}
+
+		return val
+	}
+
+	return false
+}
+
+func getTCContext(ctx context.Context) context.Context {
+	ret := context.WithValue(ctx, teamcity10.TeamCityCreds, fmt.Sprint(os.Getenv("TC_CREDS")))
+	ret = context.WithValue(ctx, teamcity10.TeamCityBaseURL, fmt.Sprint(os.Getenv("TC_BASE")))
+	return ret
 }

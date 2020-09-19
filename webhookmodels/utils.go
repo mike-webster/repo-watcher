@@ -25,3 +25,25 @@ func reworkLinks(body string) string {
 	}
 	return body
 }
+
+func ShouldDeployMaster(e *Event) (*PullRequestEventPayload, bool) {
+	local := *e
+	prep, ok := local.(*PullRequestEventPayload)
+	if !ok {
+		// we only care if we're dealing with a pull request
+		return nil, false
+	}
+
+	if prep.Action != "closed" {
+		// we  don't want to deploy master on open, label, etc
+		return nil, false
+	}
+
+	// is the repo subscribed?
+	// ----> If not, return
+	if "academy" != strings.ToLower(prep.Repo.Name) {
+		return nil, false
+	}
+
+	return prep, true
+}

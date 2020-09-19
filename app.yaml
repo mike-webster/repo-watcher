@@ -16,6 +16,8 @@ default: &default
       webhook: ""
     - repo: ""
       webhook: ""
+  test_calls: false
+  automerge:  false
 
 development:
   <<: *default

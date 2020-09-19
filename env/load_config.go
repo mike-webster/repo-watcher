@@ -53,6 +53,7 @@ type Config struct {
 	RunType         string   `yaml:"run_type"`
 	Watchers        Watchers `yaml:"watchers"`
 	MakeTestCalls   bool     `yaml:"test_calls"`
+	Automerge       bool     `yaml:"automerge"`
 }
 
 func (c *Config) BaseURL() string {
@@ -103,6 +104,11 @@ func loadAppConfig() *Config {
 	envToken := os.Getenv("API_TOKEN")
 	if len(envToken) > 0 {
 		dev.APIToken = envToken
+	}
+
+	automerge := os.Getenv("AUTO_MERGE")
+	if automerge == "true" {
+		dev.Automerge = true
 	}
 
 	return &dev

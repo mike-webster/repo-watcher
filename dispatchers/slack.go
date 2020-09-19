@@ -1,6 +1,7 @@
 package dispatchers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -22,7 +23,11 @@ func (sd *SlackDispatcher) Repo() string {
 func (sd *SlackDispatcher) SendMessage(message string, logger *logrus.Logger) error {
 	// these characters need to be escaped for slack
 	// https://api.slack.com/reference/surfaces/formatting#escaping
-	body := getBlockKitText(message)
+	body := getBlockKitText(message, logger)
+	if len(body) < 1 {
+		return errors.New("couldnt generate slack payload")
+	}
+
 	req, err := http.NewRequest("POST", sd.URL, strings.NewReader(body))
 	if err != nil {
 		return err
@@ -47,6 +52,36 @@ func (sd *SlackDispatcher) SendMessage(message string, logger *logrus.Logger) er
 	return nil
 }
 
-func getBlockKitText(text string) string {
-	return fmt.Sprintf("{\"blocks\": [{\"type\": \"section\",\"text\": {\"type\": \"mrkdwn\", \"text\": \"%s\"}}]}", text)
+func getBlockKitText(text string, logger *logrus.Logger) string {
+	type slackText struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	}
+	type slackBlock struct {
+		Type string    `json:"type"`
+		Text slackText `json:"text"`
+	}
+	type slackPayload struct {
+		Blocks []slackBlock `json:"blocks"`
+	}
+
+	p := slackPayload{
+		Blocks: []slackBlock{
+			{
+				Type: "section",
+				Text: slackText{
+					Type: "mrkdwn",
+					Text: text,
+				},
+			},
+		},
+	}
+
+	bytes, err := json.Marshal(&p)
+	if err != nil {
+		logger.WithField("event", "cant_parse_slack_payload_to_json").Error(err)
+		return ""
+	}
+
+	return string(bytes)
 }

@@ -3,9 +3,10 @@ package webhookmodels
 import (
 	"errors"
 	"fmt"
-	"github.com/mike-webster/repo-watcher/markdown"
 	"reflect"
 	"strings"
+
+	"github.com/mike-webster/repo-watcher/markdown"
 )
 
 // PushEventPayload is the request received there is a push to a repository branch.

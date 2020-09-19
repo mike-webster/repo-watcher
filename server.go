@@ -232,6 +232,12 @@ func parseEventMessage(ctx *gin.Context, eventName string, logger *logrus.Logger
 	}
 
 	if autoMergeEnabled(ctx) {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("Recovered trying to auto deploy master", r)
+			}
+		}()
+
 		pr, deploy := webhookmodels.ShouldDeployMaster(&event)
 		if deploy {
 			tccx := getTCContext(ctx)

@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mike-webster/repo-watcher/env"
+	"github.com/mike-webster/repo-watcher/keys"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,6 +39,8 @@ func setDependencies(deps *AppDependencies) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Set("deps", deps)
 		ctx.Set("logger", defaultLogger(ctx))
+		cfg := env.GetConfig()
+		ctx.Set(string(keys.AutoMerge), cfg.Automerge)
 		ctx.Next()
 	}
 }
